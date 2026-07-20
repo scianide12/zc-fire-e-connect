@@ -14,7 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      stations: {
+        Row: {
+          category: string
+          created_at: string
+          geocoded_at: string | null
+          id: string
+          latitude: number | null
+          longitude: number | null
+          municipality: string | null
+          phone_number: string
+          station_name: string
+          updated_at: string
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          geocoded_at?: string | null
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          municipality?: string | null
+          phone_number: string
+          station_name: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          geocoded_at?: string | null
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          municipality?: string | null
+          phone_number?: string
+          station_name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
