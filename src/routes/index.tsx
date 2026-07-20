@@ -5,10 +5,29 @@ import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { Phone, MapPin, Search, AlertTriangle, Flame, Shield, Users, RefreshCw } from "lucide-react";
 import { listStations, syncStations, type Station } from "@/lib/stations.functions";
 
+const STATIONS_CACHE_KEY = "r9_stations_v1";
+
 const stationsQuery = queryOptions({
   queryKey: ["stations"],
-  queryFn: () => listStations(),
+  queryFn: async () => {
+    try {
+      const data = await listStations();
+      if (typeof window !== "undefined") {
+        try {
+          localStorage.setItem(STATIONS_CACHE_KEY, JSON.stringify(data));
+        } catch {}
+      }
+      return data;
+    } catch (e) {
+      if (typeof window !== "undefined") {
+        const cached = localStorage.getItem(STATIONS_CACHE_KEY);
+        if (cached) return JSON.parse(cached) as Station[];
+      }
+      throw e;
+    }
+  },
 });
+
 
 export const Route = createFileRoute("/")({
   head: () => ({
