@@ -1,0 +1,14 @@
+{
+  "name": "Region 9 Emergency Contacts",
+  "short_name": "R9 Emergency",
+  "description": "Quick-dial emergency contacts for Zamboanga City fire sub-stations",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0b0b0b",
+  "theme_color": "#dc2626",
+  "orientation": "portrait",
+  "icons": [
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
