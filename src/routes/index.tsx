@@ -39,10 +39,10 @@ export const Route = createFileRoute("/")({
           "Quick-dial emergency contacts for Zamboanga City fire sub-stations. Call the nearest station in one tap.",
       },
       { name: "theme-color", content: "#dc2626" },
-      { property: "og:title", content: "Region 9 Emergency Contacts" },
+      { property: "og:title", content: "Region 9 Emergency Contacts – Zamboanga City" },
       {
         property: "og:description",
-        content: "One-tap emergency dialing for Zamboanga City fire sub-stations.",
+        content: "Quick-dial emergency contacts for Zamboanga City fire sub-stations. Call the nearest station in one tap.",
       },
     ],
   }),
