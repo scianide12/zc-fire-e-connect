@@ -78,7 +78,7 @@ export const syncStations = createServerFn({ method: "POST" }).handler(async () 
 
   const header = rows[0].map((h) => h.trim().toLowerCase());
   const idxName = header.findIndex((h) => h.includes("station"));
-  const idxPhone = header.findIndex((h) => h.includes("hotline") || h.includes("phone"));
+  const idxPhone = header.findIndex((h) => h.includes("hotline") || h.includes("phone") || h.includes("contact"));
   const idxGps = header.findIndex((h) => h.includes("gps") || h.includes("coord"));
 
   const existing = await supabaseAdmin
