@@ -348,7 +348,7 @@ function Home() {
                     >
                       <div>
                         <div className="text-sm font-medium">{s.station_name}</div>
-                        <div className="text-xs text-muted-foreground">{s.phone_number}</div>
+                        <div className="text-xs text-muted-foreground">{formatPhoneList(s.phone_number)}</div>
                       </div>
                       {selectedId === s.id && (
                         <span className="text-xs text-emergency">Selected</span>
