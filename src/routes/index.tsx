@@ -59,6 +59,11 @@ export const Route = createFileRoute("/")({
   notFoundComponent: () => <div className="p-6">Not found</div>,
 });
 
+function telHref(phone: string) {
+  const first = phone.split(/[/,;]| or /i)[0] ?? "";
+  return `tel:${first.replace(/[^0-9+]/g, "")}`;
+}
+
 function haversine(a: { lat: number; lon: number }, b: { lat: number; lon: number }) {
   const R = 6371;
   const toRad = (d: number) => (d * Math.PI) / 180;
@@ -242,7 +247,7 @@ function Home() {
                 <div className="mt-1 text-xl font-bold">{nearest.station_name}</div>
                 <div className="text-sm text-muted-foreground">{nearest.phone_number}</div>
                 <a
-                  href={`tel:${nearest.phone_number.replace(/[^0-9+]/g, "")}`}
+                  href={telHref(nearest.phone_number)}
                   className="mt-4 flex items-center justify-center gap-2 rounded-xl bg-emergency py-4 text-lg font-bold text-emergency-foreground active:scale-[.98] transition"
                 >
                   <Phone className="h-6 w-6" /> Call now
@@ -307,7 +312,7 @@ function Home() {
               </div>
               {selected && (
                 <a
-                  href={`tel:${selected.phone_number.replace(/[^0-9+]/g, "")}`}
+                  href={telHref(selected.phone_number)}
                   className="mt-4 flex items-center justify-center gap-2 rounded-xl bg-emergency py-4 text-lg font-bold text-emergency-foreground active:scale-[.98] transition"
                 >
                   <Phone className="h-6 w-6" /> Call {selected.station_name}
