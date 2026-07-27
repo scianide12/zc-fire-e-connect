@@ -59,10 +59,57 @@ export const Route = createFileRoute("/")({
   notFoundComponent: () => <div className="p-6">Not found</div>,
 });
 
-function telHref(phone: string) {
-  const first = phone.split(/[/,;]| or /i)[0] ?? "";
-  return `tel:${first.replace(/[^0-9+]/g, "")}`;
+// Zamboanga City landline area code
+const PH_AREA_CODE = "62";
+
+function normalizePhone(raw: string): string {
+  const trimmed = raw.trim();
+  if (!trimmed) return "";
+  // Preserve leading +, strip everything else non-digit
+  const hasPlus = trimmed.startsWith("+");
+  let digits = trimmed.replace(/[^0-9]/g, "");
+  if (!digits) return "";
+
+  if (hasPlus) {
+    // already international
+    return `+${digits}`;
+  }
+  // Country code without + (e.g. 639xxxxxxxxx)
+  if (digits.startsWith("63") && (digits.length === 12 || digits.length === 11)) {
+    return `+${digits}`;
+  }
+  // Local mobile / national: 09xxxxxxxxx
+  if (digits.startsWith("0")) {
+    return `+63${digits.slice(1)}`;
+  }
+  // Bare 7-digit Zamboanga landline
+  if (digits.length === 7) {
+    return `+63${PH_AREA_CODE}${digits}`;
+  }
+  // 10-digit national without leading 0
+  if (digits.length === 10 && digits.startsWith("9")) {
+    return `+63${digits}`;
+  }
+  // Fallback: return digits with + if it looks international-length
+  return digits.length >= 11 ? `+${digits}` : digits;
 }
+
+function firstPhone(phone: string): string {
+  return (phone.split(/[/,;]| or /i)[0] ?? "").trim();
+}
+
+function telHref(phone: string) {
+  return `tel:${normalizePhone(firstPhone(phone))}`;
+}
+
+function formatPhoneList(phone: string): string {
+  return phone
+    .split(/[/,;]| or /i)
+    .map((p) => normalizePhone(p))
+    .filter(Boolean)
+    .join(" / ");
+}
+
 
 function haversine(a: { lat: number; lon: number }, b: { lat: number; lon: number }) {
   const R = 6371;
