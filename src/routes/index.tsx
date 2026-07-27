@@ -292,7 +292,7 @@ function Home() {
                     : "Nearest available"}
                 </div>
                 <div className="mt-1 text-xl font-bold">{nearest.station_name}</div>
-                <div className="text-sm text-muted-foreground">{nearest.phone_number}</div>
+                <div className="text-sm text-muted-foreground">{formatPhoneList(nearest.phone_number)}</div>
                 <a
                   href={telHref(nearest.phone_number)}
                   className="mt-4 flex items-center justify-center gap-2 rounded-xl bg-emergency py-4 text-lg font-bold text-emergency-foreground active:scale-[.98] transition"
