@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 
 const CSV_URL =
-  "https://docs.google.com/spreadsheets/d/1Q1GpKgj83QsossDgxmbyoCyC8N9F8tGcK1_LhfcObII/export?format=csv";
+  "https://docs.google.com/spreadsheets/d/e/2PACX-1vQrbadpvlCQSpXGqN_qkYFx_suu-tovQFFj8Jb3oSXXJ8rqGjv5QG9JSSmLU40Ibt_XoxEcU9SGPI7q/pub?gid=160076783&single=true&output=csv";
 
 export type Station = {
   id: string;
