@@ -59,6 +59,11 @@ export const Route = createFileRoute("/")({
   notFoundComponent: () => <div className="p-6">Not found</div>,
 });
 
+function telHref(phone: string) {
+  const first = phone.split(/[/,;]| or /i)[0] ?? "";
+  return `tel:${first.replace(/[^0-9+]/g, "")}`;
+}
+
 function haversine(a: { lat: number; lon: number }, b: { lat: number; lon: number }) {
   const R = 6371;
   const toRad = (d: number) => (d * Math.PI) / 180;
