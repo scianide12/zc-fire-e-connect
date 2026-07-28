@@ -4,6 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { Phone, MapPin, Search, AlertTriangle, Flame, Shield, Users, RefreshCw, QrCode } from "lucide-react";
 import { listStations, syncStations, type Station } from "@/lib/stations.functions";
+import { InstallPrompt } from "@/components/InstallPrompt";
 
 const STATIONS_CACHE_KEY = "r9_stations_v1";
 
@@ -225,6 +226,8 @@ function Home() {
         </div>
         <h1 className="px-4 pb-4 text-lg font-semibold">Region 9 Emergency Contacts</h1>
       </header>
+
+      <InstallPrompt />
 
       {/* Location status */}
       {locStatus === "denied" || locStatus === "unavailable" ? (
