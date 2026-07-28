@@ -2,7 +2,7 @@ import { createFileRoute, useRouter, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
-import { Phone, MapPin, Search, AlertTriangle, Flame, Shield, Users, RefreshCw, QrCode } from "lucide-react";
+import { Phone, MapPin, Search, AlertTriangle, Flame, Shield, Users, RefreshCw, QrCode, Download } from "lucide-react";
 import { listStations, syncStations, type Station } from "@/lib/stations.functions";
 import { InstallPrompt } from "@/components/InstallPrompt";
 
@@ -376,6 +376,9 @@ function Home() {
       <footer className="mx-4 mt-8 flex items-center justify-between text-xs text-muted-foreground">
         <span>Region IX · Zamboanga City</span>
         <div className="flex items-center gap-4">
+          <Link to="/install" className="flex items-center gap-1">
+            <Download className="h-3 w-3" /> Install
+          </Link>
           <Link to="/share" className="flex items-center gap-1">
             <QrCode className="h-3 w-3" /> Share
           </Link>
