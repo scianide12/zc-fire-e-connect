@@ -2,7 +2,7 @@ import { createFileRoute, useRouter, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
-import { Phone, MapPin, Search, AlertTriangle, Flame, Shield, Users, RefreshCw, QrCode } from "lucide-react";
+import { Phone, MapPin, Search, AlertTriangle, Flame, Shield, Users, RefreshCw, QrCode, Download } from "lucide-react";
 import { listStations, syncStations, type Station } from "@/lib/stations.functions";
 import { InstallPrompt } from "@/components/InstallPrompt";
 
