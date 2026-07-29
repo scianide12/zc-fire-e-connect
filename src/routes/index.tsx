@@ -95,20 +95,19 @@ function normalizePhone(raw: string): string {
   return digits.length >= 11 ? `+${digits}` : digits;
 }
 
-function firstPhone(phone: string): string {
-  return (phone.split(/[/,;]| or /i)[0] ?? "").trim();
-}
-
-function telHref(phone: string) {
-  return `tel:${normalizePhone(firstPhone(phone))}`;
-}
-
-function formatPhoneList(phone: string): string {
+function splitPhones(phone: string): string[] {
   return phone
     .split(/[/,;]| or /i)
     .map((p) => normalizePhone(p))
-    .filter(Boolean)
-    .join(" / ");
+    .filter(Boolean);
+}
+
+function telHref(phone: string) {
+  return `tel:${splitPhones(phone)[0] ?? ""}`;
+}
+
+function formatPhoneList(phone: string): string {
+  return splitPhones(phone).join(" / ");
 }
 
 
@@ -304,12 +303,16 @@ function Home() {
                 </div>
                 <div className="mt-1 text-xl font-bold">{nearest.station_name}</div>
                 <div className="text-sm text-muted-foreground">{formatPhoneList(nearest.phone_number)}</div>
-                <a
-                  href={telHref(nearest.phone_number)}
-                  className="mt-4 flex items-center justify-center gap-2 rounded-xl bg-emergency py-4 text-lg font-bold text-emergency-foreground active:scale-[.98] transition"
-                >
-                  <Phone className="h-6 w-6" /> Call now
-                </a>
+                {splitPhones(nearest.phone_number).map((num, i, arr) => (
+                  <a
+                    key={num}
+                    href={`tel:${num}`}
+                    className="mt-3 flex items-center justify-center gap-2 rounded-xl bg-emergency py-4 text-lg font-bold text-emergency-foreground active:scale-[.98] transition"
+                  >
+                    <Phone className="h-6 w-6" />
+                    {arr.length > 1 ? `Call ${i === 0 ? "primary" : "alternate"} — ${num}` : "Call now"}
+                  </a>
+                ))}
                 {nearestSorted.length > 1 && (
                   <button
                     onClick={() =>
@@ -368,14 +371,18 @@ function Home() {
                   ))
                 )}
               </div>
-              {selected && (
+              {selected && splitPhones(selected.phone_number).map((num, i, arr) => (
                 <a
-                  href={telHref(selected.phone_number)}
-                  className="mt-4 flex items-center justify-center gap-2 rounded-xl bg-emergency py-4 text-lg font-bold text-emergency-foreground active:scale-[.98] transition"
+                  key={num}
+                  href={`tel:${num}`}
+                  className="mt-3 flex items-center justify-center gap-2 rounded-xl bg-emergency py-4 text-lg font-bold text-emergency-foreground active:scale-[.98] transition"
                 >
-                  <Phone className="h-6 w-6" /> Call {selected.station_name}
+                  <Phone className="h-6 w-6" />
+                  {arr.length > 1
+                    ? `Call ${i === 0 ? "primary" : "alternate"} — ${num}`
+                    : `Call ${selected.station_name}`}
                 </a>
-              )}
+              ))}
             </div>
           </section>
         </>
