@@ -159,7 +159,8 @@ function Home() {
         ...s,
         _dist: haversine(userLoc, { lat: s.latitude!, lon: s.longitude! }),
       }))
-      .sort((a, b) => (a as any)._dist - (b as any)._dist);
+      .sort((a, b) => (a as any)._dist - (b as any)._dist)
+      .slice(0, 10);
   }, [filtered, userLoc]);
 
   const searchResults = useMemo(() => {
