@@ -371,14 +371,18 @@ function Home() {
                   ))
                 )}
               </div>
-              {selected && (
+              {selected && splitPhones(selected.phone_number).map((num, i, arr) => (
                 <a
-                  href={telHref(selected.phone_number)}
-                  className="mt-4 flex items-center justify-center gap-2 rounded-xl bg-emergency py-4 text-lg font-bold text-emergency-foreground active:scale-[.98] transition"
+                  key={num}
+                  href={`tel:${num}`}
+                  className="mt-3 flex items-center justify-center gap-2 rounded-xl bg-emergency py-4 text-lg font-bold text-emergency-foreground active:scale-[.98] transition"
                 >
-                  <Phone className="h-6 w-6" /> Call {selected.station_name}
+                  <Phone className="h-6 w-6" />
+                  {arr.length > 1
+                    ? `Call ${i === 0 ? "primary" : "alternate"} — ${num}`
+                    : `Call ${selected.station_name}`}
                 </a>
-              )}
+              ))}
             </div>
           </section>
         </>
