@@ -303,12 +303,16 @@ function Home() {
                 </div>
                 <div className="mt-1 text-xl font-bold">{nearest.station_name}</div>
                 <div className="text-sm text-muted-foreground">{formatPhoneList(nearest.phone_number)}</div>
-                <a
-                  href={telHref(nearest.phone_number)}
-                  className="mt-4 flex items-center justify-center gap-2 rounded-xl bg-emergency py-4 text-lg font-bold text-emergency-foreground active:scale-[.98] transition"
-                >
-                  <Phone className="h-6 w-6" /> Call now
-                </a>
+                {splitPhones(nearest.phone_number).map((num, i, arr) => (
+                  <a
+                    key={num}
+                    href={`tel:${num}`}
+                    className="mt-3 flex items-center justify-center gap-2 rounded-xl bg-emergency py-4 text-lg font-bold text-emergency-foreground active:scale-[.98] transition"
+                  >
+                    <Phone className="h-6 w-6" />
+                    {arr.length > 1 ? `Call ${i === 0 ? "primary" : "alternate"} — ${num}` : "Call now"}
+                  </a>
+                ))}
                 {nearestSorted.length > 1 && (
                   <button
                     onClick={() =>
