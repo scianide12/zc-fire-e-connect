@@ -140,7 +140,15 @@ function Home() {
   const [refreshing, setRefreshing] = useState(false);
 
   const filtered = useMemo(
-    () => stations.filter((s) => s.category === tab),
+    () =>
+      stations.filter(
+        (s) =>
+          s.category === tab &&
+          s.station_name?.trim() &&
+          s.phone_number?.trim() &&
+          s.latitude != null &&
+          s.longitude != null,
+      ),
     [stations, tab],
   );
 
