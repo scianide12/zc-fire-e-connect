@@ -95,20 +95,19 @@ function normalizePhone(raw: string): string {
   return digits.length >= 11 ? `+${digits}` : digits;
 }
 
-function firstPhone(phone: string): string {
-  return (phone.split(/[/,;]| or /i)[0] ?? "").trim();
-}
-
-function telHref(phone: string) {
-  return `tel:${normalizePhone(firstPhone(phone))}`;
-}
-
-function formatPhoneList(phone: string): string {
+function splitPhones(phone: string): string[] {
   return phone
     .split(/[/,;]| or /i)
     .map((p) => normalizePhone(p))
-    .filter(Boolean)
-    .join(" / ");
+    .filter(Boolean);
+}
+
+function telHref(phone: string) {
+  return `tel:${splitPhones(phone)[0] ?? ""}`;
+}
+
+function formatPhoneList(phone: string): string {
+  return splitPhones(phone).join(" / ");
 }
 
 
