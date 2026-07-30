@@ -21,7 +21,10 @@ export default defineConfig({
         // The client bundle is emitted to dist/client and served from the site
         // root, so the SW + precache manifest must be generated from there.
         outDir: "dist/client",
-        includeAssets: ["icon-512.png", "manifest.webmanifest"],
+        // public/manifest.webmanifest is hand-maintained; letting the plugin
+        // emit its own produced two conflicting precache entries for the same
+        // URL, which made the whole service worker fail to evaluate.
+        manifest: false,
         workbox: {
           globDirectory: "dist/client",
           // No prerendered index.html exists (SSR), so there is nothing to use
