@@ -28,6 +28,9 @@ export default defineConfig({
           // as a precache navigation fallback; navigations are handled by the
           // NetworkFirst runtime route below.
           globPatterns: ["**/*.{js,css,ico,png,svg,webmanifest}"],
+          // Emit a single self-contained sw.js; the split AMD runtime chunk
+          // registers its install listener too late and skips precaching.
+          inlineWorkboxRuntime: true,
           runtimeCaching: [
             {
               urlPattern: ({ request }) => request.mode === "navigate",
