@@ -18,11 +18,16 @@ export default defineConfig({
         injectRegister: null,
         filename: "sw.js",
         devOptions: { enabled: false },
+        // The client bundle is emitted to dist/client and served from the site
+        // root, so the SW + precache manifest must be generated from there.
+        outDir: "dist/client",
         includeAssets: ["icon-512.png", "manifest.webmanifest"],
         workbox: {
-          navigateFallback: "/",
-          navigateFallbackDenylist: [/^\/~oauth/, /^\/api\//, /^\/_serverFn\//],
-          globPatterns: ["**/*.{js,css,html,ico,png,svg,webmanifest}"],
+          globDirectory: "dist/client",
+          // No prerendered index.html exists (SSR), so there is nothing to use
+          // as a precache navigation fallback; navigations are handled by the
+          // NetworkFirst runtime route below.
+          globPatterns: ["**/*.{js,css,ico,png,svg,webmanifest}"],
           runtimeCaching: [
             {
               urlPattern: ({ request }) => request.mode === "navigate",
