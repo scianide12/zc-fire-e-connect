@@ -18,11 +18,24 @@ export default defineConfig({
         injectRegister: null,
         filename: "sw.js",
         devOptions: { enabled: false },
-        includeAssets: ["icon-512.png", "manifest.webmanifest"],
+        // The client bundle is emitted to dist/client and served from the site
+        // root, so the SW + precache manifest must be generated from there.
+        outDir: "dist/client",
+        // public/manifest.webmanifest is hand-maintained; letting the plugin
+        // emit its own produced two conflicting precache entries for the same
+        // URL, which made the whole service worker fail to evaluate.
+        manifest: false,
         workbox: {
-          navigateFallback: "/",
-          navigateFallbackDenylist: [/^\/~oauth/, /^\/api\//, /^\/_serverFn\//],
-          globPatterns: ["**/*.{js,css,html,ico,png,svg,webmanifest}"],
+          globDirectory: "dist/client",
+          // No prerendered index.html exists (SSR), so there is nothing to use
+          // as a precache navigation fallback — leaving the plugin default in
+          // place made the whole service worker throw `non-precached-url`.
+          // Navigations are handled by the NetworkFirst runtime route below.
+          navigateFallback: null,
+          globPatterns: ["**/*.{js,css,ico,png,svg,webmanifest}"],
+          // Emit a single self-contained sw.js; the split AMD runtime chunk
+          // registers its install listener too late and skips precaching.
+          inlineWorkboxRuntime: true,
           runtimeCaching: [
             {
               urlPattern: ({ request }) => request.mode === "navigate",
