@@ -308,10 +308,12 @@ function Home() {
                   <a
                     key={num}
                     href={`tel:${num}`}
-                    className="mt-3 flex items-center justify-center gap-2 rounded-xl bg-emergency py-4 text-lg font-bold text-emergency-foreground active:scale-[.98] transition"
+                    className="mt-3 flex h-16 w-full items-center justify-center gap-2 rounded-xl bg-emergency px-3 text-base font-bold text-emergency-foreground active:scale-[.98] transition sm:text-lg"
                   >
-                    <Phone className="h-6 w-6" />
-                    {arr.length > 1 ? `Call ${i === 0 ? "primary" : "alternate"} — ${num}` : "Call now"}
+                    <Phone className="h-6 w-6 shrink-0" />
+                    <span className="truncate">
+                      {arr.length > 1 ? `Call ${i === 0 ? "primary" : "alternate"} — ${num}` : "Call now"}
+                    </span>
                   </a>
                 ))}
                 {nearestSorted.length > 1 && (
@@ -376,12 +378,14 @@ function Home() {
                 <a
                   key={num}
                   href={`tel:${num}`}
-                  className="mt-3 flex items-center justify-center gap-2 rounded-xl bg-emergency py-4 text-lg font-bold text-emergency-foreground active:scale-[.98] transition"
+                  className="mt-3 flex h-16 w-full items-center justify-center gap-2 rounded-xl bg-emergency px-3 text-base font-bold text-emergency-foreground active:scale-[.98] transition sm:text-lg"
                 >
-                  <Phone className="h-6 w-6" />
-                  {arr.length > 1
-                    ? `Call ${i === 0 ? "primary" : "alternate"} — ${num}`
-                    : `Call ${selected.station_name}`}
+                  <Phone className="h-6 w-6 shrink-0" />
+                  <span className="truncate">
+                    {arr.length > 1
+                      ? `Call ${i === 0 ? "primary" : "alternate"} — ${num}`
+                      : `Call ${selected.station_name}`}
+                  </span>
                 </a>
               ))}
             </div>
