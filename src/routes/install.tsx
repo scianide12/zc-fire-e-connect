@@ -227,7 +227,7 @@ function InstallPage() {
       </Section>
 
       <footer className="mx-4 mt-8 text-center text-xs text-muted-foreground">
-        Region IX · Zamboanga City
+        Region IX
       </footer>
     </div>
   );
