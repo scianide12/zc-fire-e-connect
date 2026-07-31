@@ -394,7 +394,7 @@ function Home() {
       )}
 
       <footer className="mx-4 mt-8 flex items-center justify-between text-xs text-muted-foreground">
-        <span>Region IX · Zamboanga City</span>
+        <span>Region IX</span>
         <div className="flex items-center gap-4">
           <Link to="/install" className="flex items-center gap-1">
             <Download className="h-3 w-3" /> Install
