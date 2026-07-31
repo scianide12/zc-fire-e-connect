@@ -321,7 +321,7 @@ function Home() {
                     onClick={() =>
                       setNearestIdx((i) => (i + 1) % nearestSorted.length)
                     }
-                    className="mt-2 w-full rounded-xl border border-border py-3 text-sm font-medium"
+                    className="mt-2 flex h-16 w-full items-center justify-center rounded-xl border border-border px-3 text-base font-medium"
                   >
                     Try next nearest
                   </button>
