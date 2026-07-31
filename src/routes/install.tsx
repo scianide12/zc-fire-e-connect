@@ -195,12 +195,12 @@ function InstallPage() {
         <div className="mb-3 flex items-center gap-2 rounded-lg border border-border bg-card p-3 text-sm">
           {online ? (
             <>
-              <Wifi className="h-4 w-4 text-emergency" />
+              <Wifi className="h-4 w-4 text-online" />
               <span>You're online right now.</span>
             </>
           ) : (
             <>
-              <WifiOff className="h-4 w-4 text-emergency" />
+              <WifiOff className="h-4 w-4 text-offline" />
               <span>You're offline — and this page still loaded. ✅</span>
             </>
           )}
