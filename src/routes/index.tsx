@@ -397,7 +397,7 @@ function Home() {
         <span>Region IX</span>
         <div className="flex items-center gap-4">
           <Link to="/install" className="flex items-center gap-1">
-            <Download className="h-3 w-3" /> Install
+            <Download className="h-3 w-3" /> Install instructions
           </Link>
           <Link to="/share" className="flex items-center gap-1">
             <QrCode className="h-3 w-3" /> Share
