@@ -1,7 +1,9 @@
 // Guarded service worker registration.
 // - Never registers in dev, iframe, or Lovable preview hosts.
 // - Supports ?sw=off kill switch.
-export async function registerServiceWorker() {
+export async function registerServiceWorker(
+  onUpdateReady?: (applyUpdate: () => void) => void,
+) {
   if (typeof window === "undefined") return;
   if (!("serviceWorker" in navigator)) return;
 
@@ -32,7 +34,20 @@ export async function registerServiceWorker() {
   try {
     const { Workbox } = await import("workbox-window");
     const wb = new Workbox("/sw.js");
-    wb.register();
+
+    const notify = () => {
+      if (!onUpdateReady) return;
+      onUpdateReady(() => {
+        // Reload once the new worker has taken control.
+        wb.addEventListener("controlling", () => window.location.reload());
+        wb.messageSkipWaiting();
+      });
+    };
+
+    // Fires when a new SW is installed and waiting behind the active one.
+    wb.addEventListener("waiting", notify);
+
+    await wb.register();
   } catch (e) {
     console.warn("SW registration failed", e);
   }

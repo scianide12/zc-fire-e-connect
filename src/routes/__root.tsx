@@ -11,6 +11,8 @@ import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
+import { Toaster } from "@/components/ui/sonner";
+import { useAppUpdate } from "@/hooks/use-app-update";
 
 function NotFoundComponent() {
   return (
@@ -131,14 +133,13 @@ function RootShell({ children }: { children: ReactNode }) {
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
-  useEffect(() => {
-    import("../lib/register-sw").then((m) => m.registerServiceWorker());
-  }, []);
+  useAppUpdate();
 
   return (
     <QueryClientProvider client={queryClient}>
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
       <Outlet />
+      <Toaster position="bottom-center" />
     </QueryClientProvider>
   );
 }
