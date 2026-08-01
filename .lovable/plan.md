@@ -1,23 +1,21 @@
 ## Goal
 
-Confirm that the installed (home-screen) app actually opens and works with no network — app shell, 911 banner, and station list.
+Installed users should be told the moment a new version is ready, instead of waiting for a future app launch.
 
-## Why this can't be answered from the editor preview
+## How updates work today
 
-The service worker is deliberately disabled in dev and Lovable preview (`src/lib/register-sw.ts` refuses to register in iframes, `id-preview--*`, and non-PROD). So offline behavior only exists on the published site: `https://region9-aid-now.lovable.app`. Any "offline test" run against the preview only exercises the localStorage fallback, not the real installed-app path.
+- Station data is fetched live on every load, so sheet edits appear immediately.
+- App code updates in the background (`registerType: "autoUpdate"`, NetworkFirst navigations) and takes effect on a later launch — with no visible signal.
+- Icon and app name changes are baked in at install time and still require a reinstall. That does not change.
 
-## Verification steps
+## What to build
 
-1. **Production build check** — build the app and confirm `sw.js` + `workbox-*.js` are emitted and the precache manifest includes the HTML shell, JS/CSS bundles, icons, and `manifest.webmanifest`.
-2. **Headless offline simulation against a production preview server** — serve the built output locally, load it in a real browser, let the service worker install and the station data land in `r9_stations_v1`, then cut the network (`context.set_offline(True)`), hard-reload, and screenshot. Expected: page renders from cache, 911 banner visible, station list rehydrated from localStorage, no blank screen.
-3. **Route coverage offline** — repeat the offline reload on `/`, `/install`, and `/share` to confirm the navigation fallback serves the shell for all routes rather than only the home page.
-4. **Real-device checklist** — since the published site is what users install, finish with a short set of steps for you: install from `https://region9-aid-now.lovable.app`, open it once online, enable Airplane Mode, relaunch from the home screen icon.
+1. **Detect the waiting update** — `src/lib/register-sw.ts` already registers via `workbox-window`. Hook the `waiting` event so we know when a new build has finished downloading. Keep every existing guard (dev, iframe, `id-preview--*`, `?sw=off`) untouched.
+2. **Expose it to the UI** — the register function accepts a callback that fires with an "apply update" action; a small hook (`useAppUpdate`) holds that state for React.
+3. **Show the banner** — mount `<Toaster />` from `@/components/ui/sonner` once in `src/routes/__root.tsx`, and raise a persistent (non-auto-dismissing) toast: "New version available" with a **Refresh** action button. Styled with existing emergency/card tokens; nothing hardcoded.
+4. **Apply on tap** — Refresh sends `SKIP_WAITING` to the waiting worker and reloads once the new worker takes control. No automatic reload, so nobody gets interrupted mid-call.
 
-## If a gap is found
+## Notes
 
-Likely culprits and fixes, in order:
-- Station data not cached before going offline → prime the cache on first load rather than relying on the user visiting.
-- A route 404s offline → adjust the `navigateFallback` deny-list in `vite.config.ts`.
-- Stale shell after publish → confirm `registerType: "autoUpdate"` is taking effect.
-
-No feature changes are planned; this is verification, plus a targeted fix only if a step fails.
+- The banner only ever appears on the published site; the service worker is intentionally disabled in dev and Lovable preview, so this can't be seen in the editor.
+- Verification: production build, serve locally, load, deploy a changed build, confirm the toast appears and Refresh loads the new version.
