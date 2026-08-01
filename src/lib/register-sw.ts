@@ -46,8 +46,6 @@ export async function registerServiceWorker(
 
     // Fires when a new SW is installed and waiting behind the active one.
     wb.addEventListener("waiting", notify);
-    // Some browsers surface an already-waiting worker via this event instead.
-    wb.addEventListener("externalwaiting", notify);
 
     await wb.register();
   } catch (e) {
