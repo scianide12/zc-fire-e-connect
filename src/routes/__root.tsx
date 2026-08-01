@@ -83,7 +83,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         content:
           "Quick-dial emergency contacts for Zamboanga City fire sub-stations. Call the nearest station in one tap.",
       },
-      { name: "theme-color", content: "#dc2626" },
+      { name: "theme-color", content: "#000000" },
       { name: "apple-mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
       { name: "apple-mobile-web-app-title", content: "R9 Emergency" },
