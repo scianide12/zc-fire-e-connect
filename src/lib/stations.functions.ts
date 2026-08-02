@@ -67,8 +67,28 @@ async function geocode(name: string): Promise<{ lat: number; lon: number } | nul
   }
 }
 
+// Minimum time between real syncs. Public callers that arrive sooner get a
+// no-op result, so the endpoint can't be used to spam outbound Google Sheets /
+// Nominatim requests or repeated privileged database writes.
+const SYNC_COOLDOWN_MS = 15 * 60 * 1000;
+
 export const syncStations = createServerFn({ method: "POST" }).handler(async () => {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+  // Server-side throttle: bail out before any outbound call or write.
+  const { data: last } = await supabaseAdmin
+    .from("stations")
+    .select("updated_at")
+    .order("updated_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (last?.updated_at) {
+    const age = Date.now() - new Date(last.updated_at).getTime();
+    if (age < SYNC_COOLDOWN_MS) {
+      return { synced: 0, skipped: true as const };
+    }
+  }
 
   const res = await fetch(CSV_URL, { headers: { "Cache-Control": "no-cache" } });
   if (!res.ok) throw new Error(`CSV fetch failed: ${res.status}`);
