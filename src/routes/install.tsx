@@ -254,6 +254,21 @@ function InstallPage() {
         </button>
       </Section>
 
+      <Section title="App updates">
+        <p className="mb-3 text-sm text-muted-foreground">
+          New versions download automatically in the background. Tap below to
+          fetch the newest version right now.
+        </p>
+        <button
+          onClick={checkUpdates}
+          disabled={checking}
+          className="flex h-14 w-full items-center justify-center gap-2 rounded-xl border border-border bg-card text-sm font-medium disabled:opacity-60"
+        >
+          <RefreshCw className={`h-4 w-4 ${checking ? "animate-spin" : ""}`} />
+          {checking ? "Checking…" : "Check for updates"}
+        </button>
+      </Section>
+
       <footer className="mx-4 mt-8 text-center text-xs text-muted-foreground">
         Region IX
       </footer>
