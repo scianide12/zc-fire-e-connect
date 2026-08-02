@@ -1,3 +1,10 @@
+import type { Workbox } from "workbox-window";
+
+// Set once the guarded registration succeeds, so a manual "Check for updates"
+// can reuse the same Workbox instance instead of registering a second time.
+let activeWb: Workbox | null = null;
+let pendingApply: (() => void) | null = null;
+
 // Guarded service worker registration.
 // - Never registers in dev, iframe, or Lovable preview hosts.
 // - Supports ?sw=off kill switch.
