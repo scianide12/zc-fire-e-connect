@@ -6,6 +6,34 @@ let activeWb: Workbox | null = null;
 let pendingApply: (() => void) | null = null;
 const getPendingApply = () => pendingApply;
 
+// Background update checks are throttled: at most one per hour per device,
+// remembered across launches so reopening the app doesn't re-check every time.
+const MIN_CHECK_INTERVAL_MS = 60 * 60 * 1000;
+const LAST_CHECK_KEY = "r9_last_update_check";
+let lastCheckAt = 0;
+
+function readLastCheck(): number {
+  if (lastCheckAt) return lastCheckAt;
+  try {
+    const raw = window.localStorage.getItem(LAST_CHECK_KEY);
+    lastCheckAt = raw ? Number(raw) || 0 : 0;
+  } catch {
+    lastCheckAt = 0;
+  }
+  return lastCheckAt;
+}
+
+function markChecked() {
+  lastCheckAt = Date.now();
+  try {
+    window.localStorage.setItem(LAST_CHECK_KEY, String(lastCheckAt));
+  } catch {}
+}
+
+function shouldCheckNow() {
+  return Date.now() - readLastCheck() >= MIN_CHECK_INTERVAL_MS;
+}
+
 // Guarded service worker registration.
 // - Never registers in dev, iframe, or Lovable preview hosts.
 // - Supports ?sw=off kill switch.
@@ -60,9 +88,11 @@ export async function registerServiceWorker(
 
     await wb.register();
 
-    // Ask the browser for a newer build right away on app open, and again
-    // whenever the app comes back to the foreground.
+    // Ask the browser for a newer build on app open and when the app returns
+    // to the foreground — but never more often than MIN_CHECK_INTERVAL_MS.
     const silentCheck = () => {
+      if (!shouldCheckNow()) return;
+      markChecked();
       wb.update().catch(() => {});
     };
     silentCheck();
