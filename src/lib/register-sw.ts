@@ -93,6 +93,7 @@ export async function checkForAppUpdate(): Promise<UpdateCheckResult> {
   }
 
   if (!(await found)) return "up-to-date";
-  pendingApply?.();
+  const apply: (() => void) | null = pendingApply;
+  apply?.();
   return "updating";
 }
