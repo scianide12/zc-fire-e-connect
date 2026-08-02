@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import {
   ArrowLeft,
   Share,
@@ -11,6 +12,7 @@ import {
   CheckCircle2,
   Smartphone,
   Apple,
+  RefreshCw,
 } from "lucide-react";
 
 export const Route = createFileRoute("/install")({
@@ -42,6 +44,7 @@ function InstallPage() {
   const [installed, setInstalled] = useState(false);
   const [deferred, setDeferred] = useState<BIPEvent | null>(null);
   const [online, setOnline] = useState(true);
+  const [checking, setChecking] = useState(false);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -93,6 +96,32 @@ function InstallPage() {
       "Cache primed.\n\nTo verify offline:\n1. Turn on Airplane Mode.\n2. Reopen the installed app from your Home Screen.\n3. The 911 banner and station list should still load.",
     );
   };
+
+  const checkUpdates = async () => {
+    if (checking) return;
+    setChecking(true);
+    try {
+      const { checkForAppUpdate } = await import("@/lib/register-sw");
+      const result = await checkForAppUpdate();
+      if (result === "updating") {
+        toast("Update found", { description: "Installing the newest version…" });
+        return; // page reloads itself
+      }
+      if (result === "up-to-date") {
+        toast("You're up to date", {
+          description: "You already have the newest version.",
+        });
+      } else {
+        toast("Updates unavailable here", {
+          description:
+            "Open the installed app (or the published site) to check for updates.",
+        });
+      }
+    } finally {
+      setChecking(false);
+    }
+  };
+
 
   return (
     <div className="mx-auto min-h-dvh max-w-lg bg-background pb-16 text-foreground">
@@ -223,6 +252,21 @@ function InstallPage() {
           className="mt-4 w-full rounded-xl border border-border bg-card py-3 text-sm font-medium"
         >
           Prime cache & show test steps
+        </button>
+      </Section>
+
+      <Section title="App updates">
+        <p className="mb-3 text-sm text-muted-foreground">
+          New versions download automatically in the background. Tap below to
+          fetch the newest version right now.
+        </p>
+        <button
+          onClick={checkUpdates}
+          disabled={checking}
+          className="flex h-14 w-full items-center justify-center gap-2 rounded-xl border border-border bg-card text-sm font-medium disabled:opacity-60"
+        >
+          <RefreshCw className={`h-4 w-4 ${checking ? "animate-spin" : ""}`} />
+          {checking ? "Checking…" : "Check for updates"}
         </button>
       </Section>
 
