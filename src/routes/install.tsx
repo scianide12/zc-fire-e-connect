@@ -12,6 +12,7 @@ import {
   CheckCircle2,
   Smartphone,
   Apple,
+  RefreshCw,
 } from "lucide-react";
 
 export const Route = createFileRoute("/install")({
