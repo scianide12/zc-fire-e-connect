@@ -127,6 +127,8 @@ export async function checkForAppUpdate(): Promise<UpdateCheckResult> {
     setTimeout(() => resolve(false), 8000);
   });
 
+  // A user-initiated check always runs, but still resets the background timer.
+  markChecked();
   try {
     await activeWb.update();
   } catch {
