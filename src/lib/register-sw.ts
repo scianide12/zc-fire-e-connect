@@ -4,6 +4,7 @@ import type { Workbox } from "workbox-window";
 // can reuse the same Workbox instance instead of registering a second time.
 let activeWb: Workbox | null = null;
 let pendingApply: (() => void) | null = null;
+const getPendingApply = () => pendingApply;
 
 // Guarded service worker registration.
 // - Never registers in dev, iframe, or Lovable preview hosts.
