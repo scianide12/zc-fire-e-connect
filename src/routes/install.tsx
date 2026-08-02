@@ -42,6 +42,7 @@ function InstallPage() {
   const [installed, setInstalled] = useState(false);
   const [deferred, setDeferred] = useState<BIPEvent | null>(null);
   const [online, setOnline] = useState(true);
+  const [checking, setChecking] = useState(false);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
