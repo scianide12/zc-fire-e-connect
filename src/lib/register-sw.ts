@@ -59,6 +59,16 @@ export async function registerServiceWorker(
     wb.addEventListener("waiting", notify);
 
     await wb.register();
+
+    // Ask the browser for a newer build right away on app open, and again
+    // whenever the app comes back to the foreground.
+    const silentCheck = () => {
+      wb.update().catch(() => {});
+    };
+    silentCheck();
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "visible") silentCheck();
+    });
   } catch (e) {
     console.warn("SW registration failed", e);
   }
