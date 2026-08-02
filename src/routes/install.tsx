@@ -94,6 +94,32 @@ function InstallPage() {
     );
   };
 
+  const checkUpdates = async () => {
+    if (checking) return;
+    setChecking(true);
+    try {
+      const { checkForAppUpdate } = await import("@/lib/register-sw");
+      const result = await checkForAppUpdate();
+      if (result === "updating") {
+        toast("Update found", { description: "Installing the newest version…" });
+        return; // page reloads itself
+      }
+      if (result === "up-to-date") {
+        toast("You're up to date", {
+          description: "You already have the newest version.",
+        });
+      } else {
+        toast("Updates unavailable here", {
+          description:
+            "Open the installed app (or the published site) to check for updates.",
+        });
+      }
+    } finally {
+      setChecking(false);
+    }
+  };
+
+
   return (
     <div className="mx-auto min-h-dvh max-w-lg bg-background pb-16 text-foreground">
       <header className="sticky top-0 z-10 bg-emergency px-4 py-4 text-emergency-foreground shadow">
