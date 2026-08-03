@@ -7,6 +7,8 @@ import { listStations, syncStations, type Station } from "@/lib/stations.functio
 import { InstallPrompt } from "@/components/InstallPrompt";
 
 const STATIONS_CACHE_KEY = "r9_stations_v1";
+const LOCATION_CACHE_KEY = "r9_last_location_v1";
+const LOCATION_FRESH_MS = 10 * 60 * 1000;
 
 const stationsQuery = queryOptions({
   queryKey: ["stations"],
@@ -28,6 +30,7 @@ const stationsQuery = queryOptions({
     }
   },
 });
+
 
 
 export const Route = createFileRoute("/")({
