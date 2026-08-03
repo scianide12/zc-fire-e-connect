@@ -281,6 +281,10 @@ function Home() {
   const nearest = nearestSorted[nearestIdx];
 
   const handleRefresh = async () => {
+    if (typeof navigator !== "undefined" && navigator.onLine === false) {
+      setOffline(true);
+      return;
+    }
     setRefreshing(true);
     try {
       await sync();
@@ -289,6 +293,7 @@ function Home() {
       setRefreshing(false);
     }
   };
+
 
   const selected = stations.find((s) => s.id === selectedId);
 
