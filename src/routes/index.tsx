@@ -1,5 +1,5 @@
 import { createFileRoute, useRouter, Link } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { Phone, MapPin, Search, AlertTriangle, Flame, Shield, Users, RefreshCw, QrCode, Download } from "lucide-react";
