@@ -321,22 +321,29 @@ function Home() {
 
       <InstallPrompt />
 
+      {offline ? (
+        <div className="mx-4 mt-4 rounded-xl border border-border bg-card p-3 text-sm text-muted-foreground">
+          Offline — showing saved contacts and your last known location.
+        </div>
+      ) : null}
+
       {/* Location status */}
-      {locStatus === "denied" || locStatus === "unavailable" ? (
+      {!userLoc && (locStatus === "denied" || locStatus === "unavailable") ? (
         <div className="mx-4 mt-4 rounded-xl border border-border bg-card p-3 text-sm">
           <p className="mb-2">
             {locStatus === "unavailable"
-              ? "Location is unavailable on this device."
+              ? "Couldn't get your location right now (this can happen with no signal). Distances need a location fix."
               : "Location access is needed to find the station nearest to you."}
           </p>
           <button
             onClick={requestLocation}
             className="rounded-lg bg-foreground px-3 py-2 text-sm font-medium text-background"
           >
-            Enable location
+            {locStatus === "unavailable" ? "Try again" : "Enable location"}
           </button>
         </div>
       ) : null}
+
 
       {/* Category tabs */}
       <nav className="mx-4 mt-4 grid grid-cols-3 gap-1 rounded-xl bg-card p-1">
