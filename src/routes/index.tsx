@@ -176,35 +176,107 @@ function Home() {
     return filtered.filter((s) => s.station_name.toLowerCase().includes(q));
   }, [filtered, search]);
 
+  const acceptPosition = (pos: GeolocationPosition) => {
+    const next = { lat: pos.coords.latitude, lon: pos.coords.longitude };
+    setUserLoc(next);
+    setLocAt(pos.timestamp || Date.now());
+    setLocFromCache(false);
+    setLocStatus("granted");
+    try {
+      localStorage.setItem(
+        LOCATION_CACHE_KEY,
+        JSON.stringify({ ...next, at: pos.timestamp || Date.now() }),
+      );
+    } catch {}
+  };
+
+  // Two-stage lookup: a fast, low-accuracy attempt (works offline when the
+  // device already has a fix), then a slower high-accuracy retry.
   const requestLocation = () => {
-    if (!("geolocation" in navigator)) {
+    if (typeof navigator === "undefined" || !("geolocation" in navigator)) {
       setLocStatus("unavailable");
       return;
     }
     setLocStatus("asking");
     navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        setUserLoc({ lat: pos.coords.latitude, lon: pos.coords.longitude });
-        setLocStatus("granted");
+      acceptPosition,
+      (err) => {
+        navigator.geolocation.getCurrentPosition(
+          acceptPosition,
+          (err2) => {
+            // Only nag about permissions when it really is a permission issue
+            // and we have nothing stored to fall back on.
+            const denied = err.code === 1 || err2.code === 1;
+            setLocStatus((prev) => {
+              if (!denied && userLocRef.current) return prev === "asking" ? "granted" : prev;
+              return denied ? "denied" : "unavailable";
+            });
+          },
+          { enableHighAccuracy: true, timeout: 20000, maximumAge: 60000 },
+        );
       },
-      () => setLocStatus("denied"),
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 },
+      { enableHighAccuracy: false, timeout: 6000, maximumAge: 30 * 60 * 1000 },
     );
   };
 
-  // On first load: ask location + fire background sync
+  const userLocRef = useRef<{ lat: number; lon: number } | null>(null);
+  userLocRef.current = userLoc;
+
+  // Restore the last known position so distances render instantly, even offline.
   useEffect(() => {
-    requestLocation();
-    (async () => {
-      try {
-        await sync();
-        router.invalidate();
-      } catch (e) {
-        console.warn("Background station sync failed", e);
+    try {
+      const raw = localStorage.getItem(LOCATION_CACHE_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw) as { lat: number; lon: number; at?: number };
+        if (typeof parsed.lat === "number" && typeof parsed.lon === "number") {
+          setUserLoc({ lat: parsed.lat, lon: parsed.lon });
+          setLocAt(parsed.at ?? null);
+          setLocFromCache(true);
+          setLocStatus("granted");
+        }
       }
-    })();
+    } catch {}
+  }, []);
+
+  // Keep an offline copy of the station list (the query fn runs on the server
+  // during SSR, so the browser must persist it explicitly).
+  useEffect(() => {
+    if (!stations?.length) return;
+    try {
+      localStorage.setItem(STATIONS_CACHE_KEY, JSON.stringify(stations));
+    } catch {}
+  }, [stations]);
+
+  const runSync = async () => {
+    if (typeof navigator !== "undefined" && navigator.onLine === false) return;
+    try {
+      await sync();
+      await router.invalidate();
+    } catch (e) {
+      console.warn("Background station sync failed", e);
+    }
+  };
+
+  // On first load: ask location + fire background sync (when online)
+  useEffect(() => {
+    setOffline(typeof navigator !== "undefined" && navigator.onLine === false);
+    requestLocation();
+    void runSync();
+
+    const goOnline = () => {
+      setOffline(false);
+      void runSync();
+    };
+    const goOffline = () => setOffline(true);
+    window.addEventListener("online", goOnline);
+    window.addEventListener("offline", goOffline);
+    return () => {
+      window.removeEventListener("online", goOnline);
+      window.removeEventListener("offline", goOffline);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
 
   const nearest = nearestSorted[nearestIdx];
 
