@@ -133,13 +133,17 @@ function Home() {
   const sync = useServerFn(syncStations);
   const [tab, setTab] = useState<Tab>("fire");
   const [userLoc, setUserLoc] = useState<{ lat: number; lon: number } | null>(null);
-  const [locStatus, setLocStatus] = useState<"idle" | "asking" | "granted" | "denied" | "unavailable">(
-    "idle",
-  );
+  const [locAt, setLocAt] = useState<number | null>(null);
+  const [locFromCache, setLocFromCache] = useState(false);
+  const [locStatus, setLocStatus] = useState<
+    "idle" | "asking" | "granted" | "denied" | "unavailable"
+  >("idle");
   const [nearestIdx, setNearestIdx] = useState(0);
   const [selectedId, setSelectedId] = useState<string>("");
   const [search, setSearch] = useState("");
   const [refreshing, setRefreshing] = useState(false);
+  const [offline, setOffline] = useState(false);
+
 
   const filtered = useMemo(
     () =>
