@@ -1,5 +1,5 @@
 import { createFileRoute, useRouter, Link } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { Phone, MapPin, Search, AlertTriangle, Flame, Shield, Users, RefreshCw, QrCode, Download } from "lucide-react";
@@ -7,6 +7,8 @@ import { listStations, syncStations, type Station } from "@/lib/stations.functio
 import { InstallPrompt } from "@/components/InstallPrompt";
 
 const STATIONS_CACHE_KEY = "r9_stations_v1";
+const LOCATION_CACHE_KEY = "r9_last_location_v1";
+const LOCATION_FRESH_MS = 10 * 60 * 1000;
 
 const stationsQuery = queryOptions({
   queryKey: ["stations"],
@@ -28,6 +30,7 @@ const stationsQuery = queryOptions({
     }
   },
 });
+
 
 
 export const Route = createFileRoute("/")({
@@ -130,13 +133,17 @@ function Home() {
   const sync = useServerFn(syncStations);
   const [tab, setTab] = useState<Tab>("fire");
   const [userLoc, setUserLoc] = useState<{ lat: number; lon: number } | null>(null);
-  const [locStatus, setLocStatus] = useState<"idle" | "asking" | "granted" | "denied" | "unavailable">(
-    "idle",
-  );
+  const [locAt, setLocAt] = useState<number | null>(null);
+  const [locFromCache, setLocFromCache] = useState(false);
+  const [locStatus, setLocStatus] = useState<
+    "idle" | "asking" | "granted" | "denied" | "unavailable"
+  >("idle");
   const [nearestIdx, setNearestIdx] = useState(0);
   const [selectedId, setSelectedId] = useState<string>("");
   const [search, setSearch] = useState("");
   const [refreshing, setRefreshing] = useState(false);
+  const [offline, setOffline] = useState(false);
+
 
   const filtered = useMemo(
     () =>
@@ -169,39 +176,115 @@ function Home() {
     return filtered.filter((s) => s.station_name.toLowerCase().includes(q));
   }, [filtered, search]);
 
+  const acceptPosition = (pos: GeolocationPosition) => {
+    const next = { lat: pos.coords.latitude, lon: pos.coords.longitude };
+    setUserLoc(next);
+    setLocAt(pos.timestamp || Date.now());
+    setLocFromCache(false);
+    setLocStatus("granted");
+    try {
+      localStorage.setItem(
+        LOCATION_CACHE_KEY,
+        JSON.stringify({ ...next, at: pos.timestamp || Date.now() }),
+      );
+    } catch {}
+  };
+
+  // Two-stage lookup: a fast, low-accuracy attempt (works offline when the
+  // device already has a fix), then a slower high-accuracy retry.
   const requestLocation = () => {
-    if (!("geolocation" in navigator)) {
+    if (typeof navigator === "undefined" || !("geolocation" in navigator)) {
       setLocStatus("unavailable");
       return;
     }
     setLocStatus("asking");
     navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        setUserLoc({ lat: pos.coords.latitude, lon: pos.coords.longitude });
-        setLocStatus("granted");
+      acceptPosition,
+      (err) => {
+        navigator.geolocation.getCurrentPosition(
+          acceptPosition,
+          (err2) => {
+            // Only nag about permissions when it really is a permission issue
+            // and we have nothing stored to fall back on.
+            const denied = err.code === 1 || err2.code === 1;
+            setLocStatus((prev) => {
+              if (!denied && userLocRef.current) return prev === "asking" ? "granted" : prev;
+              return denied ? "denied" : "unavailable";
+            });
+          },
+          { enableHighAccuracy: true, timeout: 20000, maximumAge: 60000 },
+        );
       },
-      () => setLocStatus("denied"),
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 },
+      { enableHighAccuracy: false, timeout: 6000, maximumAge: 30 * 60 * 1000 },
     );
   };
 
-  // On first load: ask location + fire background sync
+  const userLocRef = useRef<{ lat: number; lon: number } | null>(null);
+  userLocRef.current = userLoc;
+
+  // Restore the last known position so distances render instantly, even offline.
   useEffect(() => {
-    requestLocation();
-    (async () => {
-      try {
-        await sync();
-        router.invalidate();
-      } catch (e) {
-        console.warn("Background station sync failed", e);
+    try {
+      const raw = localStorage.getItem(LOCATION_CACHE_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw) as { lat: number; lon: number; at?: number };
+        if (typeof parsed.lat === "number" && typeof parsed.lon === "number") {
+          setUserLoc({ lat: parsed.lat, lon: parsed.lon });
+          setLocAt(parsed.at ?? null);
+          setLocFromCache(true);
+          setLocStatus("granted");
+        }
       }
-    })();
+    } catch {}
+  }, []);
+
+  // Keep an offline copy of the station list (the query fn runs on the server
+  // during SSR, so the browser must persist it explicitly).
+  useEffect(() => {
+    if (!stations?.length) return;
+    try {
+      localStorage.setItem(STATIONS_CACHE_KEY, JSON.stringify(stations));
+    } catch {}
+  }, [stations]);
+
+  const runSync = async () => {
+    if (typeof navigator !== "undefined" && navigator.onLine === false) return;
+    try {
+      await sync();
+      await router.invalidate();
+    } catch (e) {
+      console.warn("Background station sync failed", e);
+    }
+  };
+
+  // On first load: ask location + fire background sync (when online)
+  useEffect(() => {
+    setOffline(typeof navigator !== "undefined" && navigator.onLine === false);
+    requestLocation();
+    void runSync();
+
+    const goOnline = () => {
+      setOffline(false);
+      void runSync();
+    };
+    const goOffline = () => setOffline(true);
+    window.addEventListener("online", goOnline);
+    window.addEventListener("offline", goOffline);
+    return () => {
+      window.removeEventListener("online", goOnline);
+      window.removeEventListener("offline", goOffline);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
 
   const nearest = nearestSorted[nearestIdx];
 
   const handleRefresh = async () => {
+    if (typeof navigator !== "undefined" && navigator.onLine === false) {
+      setOffline(true);
+      return;
+    }
     setRefreshing(true);
     try {
       await sync();
@@ -210,6 +293,7 @@ function Home() {
       setRefreshing(false);
     }
   };
+
 
   const selected = stations.find((s) => s.id === selectedId);
 
@@ -237,22 +321,29 @@ function Home() {
 
       <InstallPrompt />
 
+      {offline ? (
+        <div className="mx-4 mt-4 rounded-xl border border-border bg-card p-3 text-sm text-muted-foreground">
+          Offline — showing saved contacts and your last known location.
+        </div>
+      ) : null}
+
       {/* Location status */}
-      {locStatus === "denied" || locStatus === "unavailable" ? (
+      {!userLoc && (locStatus === "denied" || locStatus === "unavailable") ? (
         <div className="mx-4 mt-4 rounded-xl border border-border bg-card p-3 text-sm">
           <p className="mb-2">
             {locStatus === "unavailable"
-              ? "Location is unavailable on this device."
+              ? "Couldn't get your location right now (this can happen with no signal). Distances need a location fix."
               : "Location access is needed to find the station nearest to you."}
           </p>
           <button
             onClick={requestLocation}
             className="rounded-lg bg-foreground px-3 py-2 text-sm font-medium text-background"
           >
-            Enable location
+            {locStatus === "unavailable" ? "Try again" : "Enable location"}
           </button>
         </div>
       ) : null}
+
 
       {/* Category tabs */}
       <nav className="mx-4 mt-4 grid grid-cols-3 gap-1 rounded-xl bg-card p-1">
@@ -301,7 +392,11 @@ function Home() {
                   {(nearest as any)._dist != null
                     ? `${(nearest as any)._dist.toFixed(1)} km away`
                     : "Nearest available"}
+                  {locFromCache || (locAt && Date.now() - locAt > LOCATION_FRESH_MS)
+                    ? " · from last known location"
+                    : ""}
                 </div>
+
                 <div className="mt-1 text-xl font-bold">{nearest.station_name}</div>
                 <div className="text-sm text-muted-foreground">{formatPhoneList(nearest.phone_number)}</div>
                 {splitPhones(nearest.phone_number).map((num, i, arr) => (
