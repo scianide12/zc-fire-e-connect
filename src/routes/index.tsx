@@ -392,7 +392,11 @@ function Home() {
                   {(nearest as any)._dist != null
                     ? `${(nearest as any)._dist.toFixed(1)} km away`
                     : "Nearest available"}
+                  {locFromCache || (locAt && Date.now() - locAt > LOCATION_FRESH_MS)
+                    ? " · from last known location"
+                    : ""}
                 </div>
+
                 <div className="mt-1 text-xl font-bold">{nearest.station_name}</div>
                 <div className="text-sm text-muted-foreground">{formatPhoneList(nearest.phone_number)}</div>
                 {splitPhones(nearest.phone_number).map((num, i, arr) => (
