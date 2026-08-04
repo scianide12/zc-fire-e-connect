@@ -1,7 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { QRCodeSVG } from "qrcode.react";
-import { ArrowLeft, Copy, Check, Share2 } from "lucide-react";
+import { ArrowLeft, Copy, Check, Share2, Download } from "lucide-react";
+
 
 const PUBLISHED_URL = "https://region9-aid-now.lovable.app";
 
@@ -20,6 +21,8 @@ export const Route = createFileRoute("/share")({
 function SharePage() {
   const [url, setUrl] = useState(PUBLISHED_URL);
   const [copied, setCopied] = useState(false);
+  const qrRef = useRef<HTMLDivElement>(null);
+
 
   useEffect(() => {
     if (typeof window !== "undefined") {
