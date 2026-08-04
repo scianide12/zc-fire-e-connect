@@ -323,7 +323,7 @@ function Home() {
 
       {offline ? (
         <div className="mx-4 mt-4 rounded-xl border border-border bg-card p-3 text-sm text-muted-foreground">
-          Offline — showing saved contacts and your last known location.
+          Offline — showing saved contacts and using your last known location.
         </div>
       ) : null}
 
@@ -392,9 +392,6 @@ function Home() {
                   {(nearest as any)._dist != null
                     ? `${(nearest as any)._dist.toFixed(1)} km away`
                     : "Nearest available"}
-                  {locFromCache || (locAt && Date.now() - locAt > LOCATION_FRESH_MS)
-                    ? " · from last known location"
-                    : ""}
                 </div>
 
                 <div className="mt-1 text-xl font-bold">{nearest.station_name}</div>
