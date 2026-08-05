@@ -385,7 +385,7 @@ function Home() {
         <>
           {/* Option 1 — Nearest */}
           <section className="mx-4 mt-6">
-            <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+            <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
               Call nearest station
             </h2>
             {userLoc && nearest ? (
@@ -405,7 +405,7 @@ function Home() {
                     href={`tel:${num}`}
                     className="mt-3 flex h-16 w-full items-center justify-center gap-2 rounded-xl bg-emergency px-3 text-base font-bold text-emergency-foreground active:scale-[.98] transition sm:text-lg"
                   >
-                    <Phone className="h-6 w-6 shrink-0" />
+                    <Phone className="h-6 w-6 shrink-0" strokeWidth={2} />
                     <span className="truncate">
                       {arr.length > 1 ? `Call ${i === 0 ? "primary" : "alternate"} — ${num}` : "Call now"}
                     </span>
@@ -416,7 +416,7 @@ function Home() {
                     onClick={() =>
                       setNearestIdx((i) => (i + 1) % nearestSorted.length)
                     }
-                    className="mt-2 flex h-16 w-full items-center justify-center rounded-xl border border-border px-3 text-base font-medium"
+                    className="mt-2 flex h-16 w-full items-center justify-center rounded-xl border border-muted-foreground/50 px-3 text-base font-medium"
                   >
                     Try next nearest
                   </button>
@@ -433,7 +433,7 @@ function Home() {
 
           {/* Option 2 — Select */}
           <section className="mx-4 mt-6">
-            <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+            <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
               Call by selection
             </h2>
             <div className="rounded-2xl bg-card p-4">
@@ -475,7 +475,7 @@ function Home() {
                   href={`tel:${num}`}
                   className="mt-3 flex h-16 w-full items-center justify-center gap-2 rounded-xl bg-emergency px-3 text-base font-bold text-emergency-foreground active:scale-[.98] transition sm:text-lg"
                 >
-                  <Phone className="h-6 w-6 shrink-0" />
+                  <Phone className="h-6 w-6 shrink-0" strokeWidth={2} />
                   <span className="truncate">
                     {arr.length > 1
                       ? `Call ${i === 0 ? "primary" : "alternate"} — ${num}`
