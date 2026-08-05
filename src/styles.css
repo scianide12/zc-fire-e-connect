@@ -27,6 +27,8 @@
   --color-destructive-foreground: var(--destructive-foreground);
   --color-emergency: var(--emergency);
   --color-emergency-foreground: var(--emergency-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
   --color-online: var(--online);
   --color-offline: var(--offline);
   --color-border: var(--border);
@@ -54,6 +56,8 @@
   --destructive-foreground: oklch(0.985 0 0);
   --emergency: oklch(0.62 0.24 27);
   --emergency-foreground: oklch(0.99 0 0);
+  --warning: oklch(0.82 0.15 78);
+  --warning-foreground: oklch(0.22 0.03 78);
   --online: oklch(0.75 0.19 145);
   --offline: oklch(0.62 0.24 27);
   --border: oklch(0.3 0.02 260);
