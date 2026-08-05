@@ -488,25 +488,23 @@ function Home() {
         </>
       )}
 
-      <footer className="mx-4 mt-8 flex items-center justify-between text-xs text-muted-foreground">
-        <span>Region IX</span>
-        <div className="flex items-center gap-4">
-          <Link to="/install" className="flex items-center gap-1">
-            <Download className="h-3 w-3" /> Install instructions
-          </Link>
-          <Link to="/share" className="flex items-center gap-1">
-            <QrCode className="h-3 w-3" /> Share
-          </Link>
-          <button
-            onClick={handleRefresh}
-            disabled={refreshing}
-            className="flex items-center gap-1 disabled:opacity-50"
-          >
-            <RefreshCw className={`h-3 w-3 ${refreshing ? "animate-spin" : ""}`} />
-            {refreshing ? "Refreshing" : "Refresh data"}
-          </button>
-        </div>
+      <footer className="mx-4 mt-8 grid grid-cols-3 items-center text-xs text-muted-foreground">
+        <Link to="/install" className="flex items-center justify-center gap-1 text-center">
+          <Download className="h-3 w-3 shrink-0" /> Install instructions
+        </Link>
+        <Link to="/share" className="flex items-center justify-center gap-1 text-center">
+          <QrCode className="h-3 w-3 shrink-0" /> Share
+        </Link>
+        <button
+          onClick={handleRefresh}
+          disabled={refreshing}
+          className="flex items-center justify-center gap-1 text-center disabled:opacity-50"
+        >
+          <RefreshCw className={`h-3 w-3 shrink-0 ${refreshing ? "animate-spin" : ""}`} />
+          {refreshing ? "Refreshing" : "Refresh data"}
+        </button>
       </footer>
+
     </div>
   );
 }
