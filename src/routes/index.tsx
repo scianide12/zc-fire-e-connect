@@ -300,32 +300,33 @@ function Home() {
   return (
     <div className="mx-auto min-h-dvh max-w-lg pb-16">
       {/* Emergency banner */}
-      <header className="sticky top-0 z-20 bg-emergency text-emergency-foreground shadow-lg">
+      <header className="sticky top-0 z-20 border-b border-border bg-background shadow-lg">
         <div className="px-4 pt-5 pb-3">
-          <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider opacity-90">
+          <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
             <AlertTriangle className="h-4 w-4" /> National Emergency Hotline
           </div>
           <a
             href="tel:911"
-            className="mt-1 flex items-center justify-between gap-3 rounded-2xl bg-black/25 px-4 py-4 active:scale-[.98] transition"
+            className="mt-2 flex items-center justify-between gap-3 rounded-2xl bg-emergency px-4 py-4 text-emergency-foreground active:scale-[.98] transition"
           >
             <div>
               <div className="text-4xl font-black tracking-tight">911</div>
               <div className="text-sm opacity-90">Tap to call</div>
             </div>
-            <Phone className="h-10 w-10" />
+            <Phone className="h-10 w-10" strokeWidth={2} />
           </a>
         </div>
-        <h1 className="px-4 pb-4 text-lg font-semibold">Region 9 Emergency Contacts</h1>
+        <h1 className="px-4 pt-1 pb-6 text-lg font-semibold">Region 9 Emergency Contacts</h1>
       </header>
 
       <InstallPrompt />
 
       {offline ? (
-        <div className="mx-4 mt-4 rounded-xl border border-border bg-card p-3 text-sm text-muted-foreground">
+        <div className="mx-4 mt-4 rounded-xl bg-warning p-3 text-sm font-medium text-warning-foreground">
           Offline — showing saved contacts and using your last known location.
         </div>
       ) : null}
+
 
       {/* Location status */}
       {!userLoc && (locStatus === "denied" || locStatus === "unavailable") ? (
@@ -362,8 +363,10 @@ function Home() {
                 setNearestIdx(0);
                 setSelectedId("");
               }}
-              className={`flex flex-col items-center gap-1 rounded-lg px-2 py-3 text-xs font-medium transition ${
-                active ? "bg-emergency text-emergency-foreground" : "text-muted-foreground"
+              className={`flex flex-col items-center gap-1 rounded-lg border px-2 py-3 text-xs font-medium transition ${
+                active
+                  ? "border-emergency bg-card text-emergency"
+                  : "border-transparent text-muted-foreground"
               }`}
             >
               <Icon className="h-5 w-5" />
