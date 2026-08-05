@@ -99,11 +99,8 @@ function SharePage() {
           />
         </div>
 
-        <div className="mt-6 p-3 rounded-lg bg-muted text-sm break-all text-center">
-          {url}
-        </div>
+        <div className="mt-6 grid grid-cols-2 gap-3">
 
-        <div className="mt-4 grid grid-cols-2 gap-3">
           <button
             onClick={copy}
             className="flex items-center justify-center gap-2 h-12 rounded-lg bg-secondary text-secondary-foreground font-medium"
