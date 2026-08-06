@@ -8,7 +8,6 @@ import {
   Download,
   CheckCircle2,
 
-  CheckCircle2,
   Smartphone,
   Apple,
 } from "lucide-react";
