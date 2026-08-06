@@ -5,6 +5,7 @@ import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { Phone, MapPin, Search, AlertTriangle, Flame, Shield, Users, RefreshCw, QrCode, Download } from "lucide-react";
 import { listStations, syncStations, type Station } from "@/lib/stations.functions";
 import { InstallPrompt } from "@/components/InstallPrompt";
+import { toast } from "sonner";
 
 const STATIONS_CACHE_KEY = "r9_stations_v1";
 const LOCATION_CACHE_KEY = "r9_last_location_v1";
@@ -289,6 +290,12 @@ function Home() {
     try {
       await sync();
       await router.invalidate();
+      // Also pull any newer app build; reloads on its own when one is found.
+      try {
+        const { checkForAppUpdate } = await import("@/lib/register-sw");
+        const result = await checkForAppUpdate();
+        if (result === "up-to-date") toast.success("You're on the latest version");
+      } catch {}
     } finally {
       setRefreshing(false);
     }
@@ -501,7 +508,7 @@ function Home() {
           className="flex items-center justify-center gap-1 text-center disabled:opacity-50"
         >
           <RefreshCw className={`h-3 w-3 shrink-0 ${refreshing ? "animate-spin" : ""}`} />
-          {refreshing ? "Refreshing" : "Refresh data"}
+          {refreshing ? "Updating" : "Update"}
         </button>
       </footer>
 
