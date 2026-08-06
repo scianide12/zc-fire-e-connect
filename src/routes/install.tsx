@@ -6,8 +6,8 @@ import {
   Plus,
   MoreVertical,
   Download,
-  Wifi,
-  WifiOff,
+  CheckCircle2,
+
   CheckCircle2,
   Smartphone,
   Apple,
