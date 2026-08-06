@@ -289,6 +289,12 @@ function Home() {
     try {
       await sync();
       await router.invalidate();
+      // Also pull any newer app build; reloads on its own when one is found.
+      try {
+        const { checkForAppUpdate } = await import("@/lib/register-sw");
+        const result = await checkForAppUpdate();
+        if (result === "up-to-date") toast.success("You're on the latest version");
+      } catch {}
     } finally {
       setRefreshing(false);
     }
