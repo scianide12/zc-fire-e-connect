@@ -508,7 +508,7 @@ function Home() {
           className="flex items-center justify-center gap-1 text-center disabled:opacity-50"
         >
           <RefreshCw className={`h-3 w-3 shrink-0 ${refreshing ? "animate-spin" : ""}`} />
-          {refreshing ? "Refreshing" : "Refresh data"}
+          {refreshing ? "Updating" : "Update"}
         </button>
       </footer>
 
