@@ -177,38 +177,8 @@ function InstallPage() {
         </Section>
       )}
 
-      <Section title="Verify offline mode">
-        <p className="mb-3 text-sm text-muted-foreground">
-          After installing, the app caches the 911 banner, station list, and
-          layout so it opens without internet.
-        </p>
-        <div className="mb-3 flex items-center gap-2 rounded-lg border border-border bg-card p-3 text-sm">
-          {online ? (
-            <>
-              <Wifi className="h-4 w-4 text-online" />
-              <span>You're online right now.</span>
-            </>
-          ) : (
-            <>
-              <WifiOff className="h-4 w-4 text-offline" />
-              <span>You're offline — and this page still loaded. ✅</span>
-            </>
-          )}
-        </div>
-        <ol className="ml-5 list-decimal space-y-2 text-sm">
-          <li>Install the app using the steps above.</li>
-          <li>
-            Open it once while online so station data is saved to your device.
-          </li>
-          <li>
-            Turn on <b>Airplane Mode</b> (or disable Wi-Fi and mobile data).
-          </li>
-          <li>
-            Reopen the app from your home screen — the 911 banner and station
-            list should appear as normal.
-          </li>
-        </ol>
-      </Section>
+
+
 
 
       <footer className="mx-4 mt-8 text-center text-xs text-muted-foreground">
