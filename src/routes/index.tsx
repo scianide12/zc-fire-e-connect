@@ -328,9 +328,9 @@ function Home() {
 
       <InstallPrompt />
 
-      {offline ? (
+      {statusMessage ? (
         <div className="mx-4 mt-4 rounded-xl bg-warning p-3 text-sm font-medium text-warning-foreground">
-          Offline — showing saved contacts and using your last known location.
+          {statusMessage}
         </div>
       ) : null}
 
