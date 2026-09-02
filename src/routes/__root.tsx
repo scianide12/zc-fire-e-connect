@@ -79,7 +79,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
-      { title: "Region 9 Emergency Contacts – Zamboanga City" },
+      { title: "ZC E-CONNECT – Zamboanga City" },
       {
         name: "description",
         content:
@@ -88,15 +88,15 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "theme-color", content: "#000000" },
       { name: "apple-mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
-      { name: "apple-mobile-web-app-title", content: "R9 Emergency" },
-      { property: "og:title", content: "Region 9 Emergency Contacts – Zamboanga City" },
+      { name: "apple-mobile-web-app-title", content: "ZC E-CONNECT" },
+      { property: "og:title", content: "ZC E-CONNECT – Zamboanga City" },
       {
         property: "og:description",
         content: "Quick-dial emergency contacts for Zamboanga City fire sub-stations. Call the nearest station in one tap.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: "Region 9 Emergency Contacts – Zamboanga City" },
+      { name: "twitter:title", content: "ZC E-CONNECT – Zamboanga City" },
       { name: "twitter:description", content: "Quick-dial emergency contacts for Zamboanga City fire sub-stations. Call the nearest station in one tap." },
       { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/a5942884-b0e6-4e91-b8e8-9c2a1e41591f/id-preview-19787468--77bcc2d6-ebc5-4174-8ebf-0254aaf1abd7.lovable.app-1784526109635.png" },
       { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/a5942884-b0e6-4e91-b8e8-9c2a1e41591f/id-preview-19787468--77bcc2d6-ebc5-4174-8ebf-0254aaf1abd7.lovable.app-1784526109635.png" },
