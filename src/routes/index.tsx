@@ -37,14 +37,14 @@ const stationsQuery = queryOptions({
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "ZC E-CONNECT – Zamboanga City" },
+      { title: "ZC FIRE E-CONNECT – Zamboanga City" },
       {
         name: "description",
         content:
           "Quick-dial emergency contacts for Zamboanga City fire sub-stations. Call the nearest station in one tap.",
       },
       { name: "theme-color", content: "#000000" },
-      { property: "og:title", content: "ZC E-CONNECT – Zamboanga City" },
+      { property: "og:title", content: "ZC FIRE E-CONNECT – Zamboanga City" },
       {
         property: "og:description",
         content: "Quick-dial emergency contacts for Zamboanga City fire sub-stations. Call the nearest station in one tap.",
@@ -323,7 +323,7 @@ function Home() {
             <Phone className="h-10 w-10" strokeWidth={2} />
           </a>
         </div>
-        <h1 className="px-4 pt-1 pb-6 text-lg font-semibold">ZC E-CONNECT</h1>
+        <h1 className="px-4 pt-1 pb-6 text-lg font-semibold">ZC FIRE E-CONNECT</h1>
       </header>
 
       <InstallPrompt />
