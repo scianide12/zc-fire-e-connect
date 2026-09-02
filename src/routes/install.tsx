@@ -15,13 +15,13 @@ import {
 export const Route = createFileRoute("/install")({
   head: () => ({
     meta: [
-      { title: "Install the App – ZC E-CONNECT" },
+      { title: "Install the App – ZC FIRE E-CONNECT" },
       {
         name: "description",
         content:
-          "Step-by-step instructions to install ZC E-CONNECT on iPhone and Android for one-tap access, even offline.",
+          "Step-by-step instructions to install ZC FIRE E-CONNECT on iPhone and Android for one-tap access, even offline.",
       },
-      { property: "og:title", content: "Install the App – ZC E-CONNECT" },
+      { property: "og:title", content: "Install the App – ZC FIRE E-CONNECT" },
       {
         property: "og:description",
         content: "Add the Zamboanga City emergency contacts app to your home screen — works offline.",
