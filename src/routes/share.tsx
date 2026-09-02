@@ -9,9 +9,9 @@ const PUBLISHED_URL = "https://region9-aid-now.lovable.app";
 export const Route = createFileRoute("/share")({
   head: () => ({
     meta: [
-      { title: "Share – Region 9 Emergency Contacts" },
-      { name: "description", content: "Scan the QR code to open and install the Region 9 Emergency Contacts app." },
-      { property: "og:title", content: "Share – Region 9 Emergency Contacts" },
+      { title: "Share – ZC E-CONNECT" },
+      { name: "description", content: "Scan the QR code to open and install the ZC E-CONNECT app." },
+      { property: "og:title", content: "Share – ZC E-CONNECT" },
       { property: "og:description", content: "Scan to open the Zamboanga City emergency contacts app." },
     ],
   }),
@@ -45,7 +45,7 @@ function SharePage() {
   async function share() {
     if (navigator.share) {
       try {
-        await navigator.share({ title: "Region 9 Emergency Contacts", url });
+        await navigator.share({ title: "ZC E-CONNECT", url });
       } catch {}
     } else {
       copy();
@@ -85,7 +85,7 @@ function SharePage() {
 
         <h1 className="text-2xl font-bold mb-2">Share this app</h1>
         <p className="text-sm text-muted-foreground mb-6">
-          Scan the QR code with a phone camera to open and install Region 9 Emergency Contacts.
+          Scan the QR code with a phone camera to open and install ZC E-CONNECT.
         </p>
 
         <div ref={qrRef} className="bg-white rounded-2xl p-6 flex items-center justify-center shadow-lg">
