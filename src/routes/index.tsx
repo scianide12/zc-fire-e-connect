@@ -304,6 +304,27 @@ function Home() {
 
   const selected = stations.find((s) => s.id === selectedId);
 
+  // One combined status banner: no internet, no location fix, or both.
+  const locFailed = locStatus === "denied" || locStatus === "unavailable";
+  const statusMessage = (() => {
+    if (offline && locFailed) {
+      return userLoc
+        ? "Offline and no location — showing saved contacts and your last known location."
+        : "Offline and no location — showing saved contacts. Distances are unavailable.";
+    }
+    if (offline) {
+      return userLoc
+        ? "Offline — showing saved contacts and using your last known location."
+        : "Offline — showing saved contacts. Distances are unavailable.";
+    }
+    if (locFailed) {
+      return userLoc
+        ? "Location unavailable — using your last known location. Distances may be out of date."
+        : "Location unavailable — showing saved contacts. Distances are unavailable.";
+    }
+    return null;
+  })();
+
   return (
     <div className="mx-auto min-h-dvh max-w-lg pb-16">
       {/* Emergency banner */}
@@ -328,9 +349,9 @@ function Home() {
 
       <InstallPrompt />
 
-      {offline ? (
+      {statusMessage ? (
         <div className="mx-4 mt-4 rounded-xl bg-warning p-3 text-sm font-medium text-warning-foreground">
-          Offline — showing saved contacts and using your last known location.
+          {statusMessage}
         </div>
       ) : null}
 
