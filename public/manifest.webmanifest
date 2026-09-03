@@ -1,6 +1,6 @@
 {
-  "name": "ZC E-CONNECT",
-  "short_name": "R9 Emergency",
+  "name": "ZC FIRE E-CONNECT",
+  "short_name": "ZC Fire E-Connect",
   "description": "Quick-dial emergency contacts for Zamboanga City fire sub-stations",
   "start_url": "/",
   "display": "standalone",
