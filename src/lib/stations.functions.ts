@@ -1,7 +1,28 @@
 import { createServerFn } from "@tanstack/react-start";
 
-const CSV_URL =
-  "https://docs.google.com/spreadsheets/d/e/2PACX-1vSSD-MjlGYORQCPH2P0w-XvpUleBOo3PX94TlzEVZ5L-krG-WqcXf3phfFrMsIUe2_xBiJUGBaHG-Us/pub?output=csv";
+const SOURCES = [
+  {
+    category: "fire",
+    url: "https://docs.google.com/spreadsheets/d/e/2PACX-1vSSD-MjlGYORQCPH2P0w-XvpUleBOo3PX94TlzEVZ5L-krG-WqcXf3phfFrMsIUe2_xBiJUGBaHG-Us/pub?output=csv",
+  },
+  {
+    category: "barangay",
+    url: "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ_Uu8K0zf2G32k3HdPBVHVbLxwBlzr5wVqAJGySHV0C2LBZpQgcUyVCDWAj1rLZ6wo_9uOzX-VpRfW/pub?output=csv",
+  },
+] as const;
+
+// A bare 7-digit number is a Zamboanga City landline -> prefix area code 062.
+function withAreaCode(raw: string): string {
+  return raw
+    .split(/[\/;]+/)
+    .map((p) => p.trim())
+    .filter(Boolean)
+    .map((p) => {
+      const digits = p.replace(/\D/g, "");
+      return digits.length === 7 ? `062${digits}` : p;
+    })
+    .join("/");
+}
 
 export type Station = {
   id: string;
@@ -90,17 +111,6 @@ export const syncStations = createServerFn({ method: "POST" }).handler(async () 
     }
   }
 
-  const res = await fetch(CSV_URL, { headers: { "Cache-Control": "no-cache" } });
-  if (!res.ok) throw new Error(`CSV fetch failed: ${res.status}`);
-  const csv = await res.text();
-  const rows = parseCsv(csv);
-  if (rows.length < 2) return { synced: 0 };
-
-  const header = rows[0].map((h) => h.trim().toLowerCase());
-  const idxName = header.findIndex((h) => h.includes("station"));
-  const idxPhone = header.findIndex((h) => h.includes("hotline") || h.includes("phone") || h.includes("contact"));
-  const idxGps = header.findIndex((h) => h.includes("gps") || h.includes("coord"));
-
   const existing = await supabaseAdmin
     .from("stations")
     .select("station_name, latitude, longitude");
@@ -109,51 +119,68 @@ export const syncStations = createServerFn({ method: "POST" }).handler(async () 
   );
 
   let synced = 0;
-  for (const row of rows.slice(1)) {
-    const name = (row[idxName] ?? "").trim();
-    const phone = (row[idxPhone] ?? "").trim();
-    if (!name || !phone) continue;
 
-    let lat: number | null = null;
-    let lon: number | null = null;
-    const gps = (row[idxGps] ?? "").trim();
-    if (gps) {
-      const parts = gps.split(",").map((p) => parseFloat(p.trim()));
-      if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
-        lat = parts[0];
-        lon = parts[1];
-      }
-    }
+  for (const source of SOURCES) {
+    const res = await fetch(source.url, { headers: { "Cache-Control": "no-cache" } });
+    if (!res.ok) throw new Error(`CSV fetch failed: ${res.status}`);
+    const csv = await res.text();
+    const rows = parseCsv(csv);
+    if (rows.length < 2) continue;
 
-    // Geocode if missing and not already cached with coords
-    const prev = existingMap.get(name);
-    if ((lat === null || lon === null) && prev?.latitude && prev?.longitude) {
-      lat = prev.latitude;
-      lon = prev.longitude;
-    } else if (lat === null || lon === null) {
-      const g = await geocode(name);
-      if (g) {
-        lat = g.lat;
-        lon = g.lon;
-      }
-      // gentle rate-limit for Nominatim
-      await new Promise((r) => setTimeout(r, 1100));
-    }
-
-    await supabaseAdmin.from("stations").upsert(
-      {
-        station_name: name,
-        phone_number: phone,
-        latitude: lat,
-        longitude: lon,
-        category: "fire",
-        municipality: "Zamboanga City",
-        geocoded_at: lat && lon ? new Date().toISOString() : null,
-        updated_at: new Date().toISOString(),
-      },
-      { onConflict: "station_name" },
+    const header = rows[0].map((h) => h.trim().toLowerCase());
+    const idxName = header.findIndex((h) => h.includes("station") || h.includes("barangay"));
+    const idxPhone = header.findIndex(
+      (h) => h.includes("hotline") || h.includes("phone") || h.includes("contact"),
     );
-    synced++;
+    const idxGps = header.findIndex((h) => h.includes("gps") || h.includes("coord"));
+    if (idxName < 0 || idxPhone < 0) continue;
+
+    for (const row of rows.slice(1)) {
+      const name = (row[idxName] ?? "").trim();
+      const phone = withAreaCode((row[idxPhone] ?? "").trim());
+      if (!name || !phone) continue;
+
+      let lat: number | null = null;
+      let lon: number | null = null;
+      const gps = idxGps >= 0 ? (row[idxGps] ?? "").trim() : "";
+      if (gps) {
+        const parts = gps.split(",").map((p) => parseFloat(p.trim()));
+        if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
+          lat = parts[0];
+          lon = parts[1];
+        }
+      }
+
+      // Geocode if missing and not already cached with coords
+      const prev = existingMap.get(name);
+      if ((lat === null || lon === null) && prev?.latitude && prev?.longitude) {
+        lat = prev.latitude;
+        lon = prev.longitude;
+      } else if (lat === null || lon === null) {
+        const g = await geocode(name);
+        if (g) {
+          lat = g.lat;
+          lon = g.lon;
+        }
+        // gentle rate-limit for Nominatim
+        await new Promise((r) => setTimeout(r, 1100));
+      }
+
+      await supabaseAdmin.from("stations").upsert(
+        {
+          station_name: name,
+          phone_number: phone,
+          latitude: lat,
+          longitude: lon,
+          category: source.category,
+          municipality: "Zamboanga City",
+          geocoded_at: lat && lon ? new Date().toISOString() : null,
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: "station_name" },
+      );
+      synced++;
+    }
   }
 
   return { synced };
