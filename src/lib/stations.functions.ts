@@ -1,7 +1,28 @@
 import { createServerFn } from "@tanstack/react-start";
 
-const CSV_URL =
-  "https://docs.google.com/spreadsheets/d/e/2PACX-1vSSD-MjlGYORQCPH2P0w-XvpUleBOo3PX94TlzEVZ5L-krG-WqcXf3phfFrMsIUe2_xBiJUGBaHG-Us/pub?output=csv";
+const SOURCES = [
+  {
+    category: "fire",
+    url: "https://docs.google.com/spreadsheets/d/e/2PACX-1vSSD-MjlGYORQCPH2P0w-XvpUleBOo3PX94TlzEVZ5L-krG-WqcXf3phfFrMsIUe2_xBiJUGBaHG-Us/pub?output=csv",
+  },
+  {
+    category: "barangay",
+    url: "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ_Uu8K0zf2G32k3HdPBVHVbLxwBlzr5wVqAJGySHV0C2LBZpQgcUyVCDWAj1rLZ6wo_9uOzX-VpRfW/pub?output=csv",
+  },
+] as const;
+
+// A bare 7-digit number is a Zamboanga City landline -> prefix area code 062.
+function withAreaCode(raw: string): string {
+  return raw
+    .split(/[\/;]+/)
+    .map((p) => p.trim())
+    .filter(Boolean)
+    .map((p) => {
+      const digits = p.replace(/\D/g, "");
+      return digits.length === 7 ? `062${digits}` : p;
+    })
+    .join("/");
+}
 
 export type Station = {
   id: string;
