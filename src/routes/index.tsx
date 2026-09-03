@@ -2,7 +2,7 @@ import { createFileRoute, useRouter, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
-import { Phone, MapPin, Search, AlertTriangle, Flame, Shield, Users, RefreshCw, QrCode, Download } from "lucide-react";
+import { Phone, MapPin, Search, AlertTriangle, Flame, Users, RefreshCw, QrCode, Download } from "lucide-react";
 import { listStations, syncStations, type Station } from "@/lib/stations.functions";
 import { InstallPrompt } from "@/components/InstallPrompt";
 import { toast } from "sonner";
@@ -126,7 +126,7 @@ function haversine(a: { lat: number; lon: number }, b: { lat: number; lon: numbe
   return 2 * R * Math.asin(Math.sqrt(s));
 }
 
-type Tab = "fire" | "police" | "barangay";
+type Tab = "fire" | "barangay";
 
 function Home() {
   const { data: stations } = useSuspenseQuery(stationsQuery);
@@ -375,10 +375,9 @@ function Home() {
 
 
       {/* Category tabs */}
-      <nav className="mx-4 mt-4 grid grid-cols-3 gap-1 rounded-xl bg-card p-1">
+      <nav className="mx-4 mt-4 grid grid-cols-2 gap-2">
         {[
           { id: "fire" as Tab, label: "Fire", Icon: Flame },
-          { id: "police" as Tab, label: "Police", Icon: Shield },
           { id: "barangay" as Tab, label: "Barangay", Icon: Users },
         ].map(({ id, label, Icon }) => {
           const count = stations.filter((s) => s.category === id).length;
@@ -386,20 +385,29 @@ function Home() {
           return (
             <button
               key={id}
+              aria-pressed={active}
               onClick={() => {
                 setTab(id);
                 setNearestIdx(0);
                 setSelectedId("");
               }}
-              className={`flex flex-col items-center gap-1 rounded-lg border px-2 py-3 text-xs font-medium transition ${
+              className={`flex items-center gap-3 rounded-2xl border bg-card px-4 py-3 text-left transition active:scale-[.98] ${
                 active
-                  ? "border-emergency bg-card text-emergency"
-                  : "border-transparent text-muted-foreground"
+                  ? "border-emergency text-emergency shadow-sm"
+                  : "border-border text-muted-foreground"
               }`}
             >
-              <Icon className="h-5 w-5" />
-              <span>{label}</span>
-              <span className="text-[10px] opacity-70">{count} listed</span>
+              <span
+                className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${
+                  active ? "bg-emergency/10" : "bg-background"
+                }`}
+              >
+                <Icon className="h-5 w-5" strokeWidth={2} />
+              </span>
+              <span className="min-w-0">
+                <span className="block text-sm font-semibold">{label}</span>
+                <span className="block text-[11px] opacity-70">{count} listed</span>
+              </span>
             </button>
           );
         })}
