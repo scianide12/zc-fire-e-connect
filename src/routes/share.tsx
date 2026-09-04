@@ -4,7 +4,7 @@ import { QRCodeSVG } from "qrcode.react";
 import { ArrowLeft, Copy, Check, Share2, Download } from "lucide-react";
 
 
-const PUBLISHED_URL = "https://region9-aid-now.lovable.app";
+const PUBLISHED_URL = "https://zc-fire-e-connect.lovable.app";
 
 export const Route = createFileRoute("/share")({
   head: () => ({
