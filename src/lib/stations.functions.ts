@@ -198,7 +198,7 @@ export const syncStations = createServerFn({ method: "POST" })
     }
   }
 
-  return { synced };
+  return { synced, skipped: false as const, lastSyncedAt };
 });
 
 export const listStations = createServerFn({ method: "GET" }).handler(async () => {
