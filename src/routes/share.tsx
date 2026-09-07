@@ -70,7 +70,7 @@ function SharePage() {
       ctx.drawImage(img, 0, 0, size, size);
       const a = document.createElement("a");
       a.href = canvas.toDataURL("image/png");
-      a.download = "region9-emergency-contacts-qr.png";
+      a.download = "zc-fire-e-connect-qr.png";
       a.click();
     };
     img.src = "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(source)));
