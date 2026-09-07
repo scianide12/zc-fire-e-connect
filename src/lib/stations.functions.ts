@@ -131,7 +131,12 @@ export const syncStations = createServerFn({ method: "POST" })
   let synced = 0;
 
   for (const source of SOURCES) {
-    const res = await fetch(source.url, { headers: { "Cache-Control": "no-cache" } });
+    // Cache-buster: Google serves a cached copy of published sheets otherwise.
+    const url = `${source.url}${source.url.includes("?") ? "&" : "?"}_cb=${Date.now()}`;
+    const res = await fetch(url, {
+      headers: { "Cache-Control": "no-cache", Pragma: "no-cache" },
+      cache: "no-store",
+    });
     if (!res.ok) throw new Error(`CSV fetch failed: ${res.status}`);
     const csv = await res.text();
     const rows = parseCsv(csv);
