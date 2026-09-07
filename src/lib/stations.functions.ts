@@ -93,7 +93,15 @@ async function geocode(name: string): Promise<{ lat: number; lon: number } | nul
 // Nominatim requests or repeated privileged database writes.
 const SYNC_COOLDOWN_MS = 15 * 60 * 1000;
 
-export const syncStations = createServerFn({ method: "POST" }).handler(async () => {
+// A manual tap of "Update" may bypass the throttle; automatic background
+// refreshes may not.
+const MANUAL_SYNC_COOLDOWN_MS = 20 * 1000;
+
+export const syncStations = createServerFn({ method: "POST" })
+  .inputValidator((data: unknown) => ({
+    force: Boolean((data as { force?: unknown } | undefined)?.force),
+  }))
+  .handler(async ({ data }) => {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
   // Server-side throttle: bail out before any outbound call or write.
@@ -104,10 +112,12 @@ export const syncStations = createServerFn({ method: "POST" }).handler(async () 
     .limit(1)
     .maybeSingle();
 
-  if (last?.updated_at) {
-    const age = Date.now() - new Date(last.updated_at).getTime();
-    if (age < SYNC_COOLDOWN_MS) {
-      return { synced: 0, skipped: true as const };
+  const lastSyncedAt = last?.updated_at ?? null;
+  if (lastSyncedAt) {
+    const age = Date.now() - new Date(lastSyncedAt).getTime();
+    const cooldown = data.force ? MANUAL_SYNC_COOLDOWN_MS : SYNC_COOLDOWN_MS;
+    if (age < cooldown) {
+      return { synced: 0, skipped: true as const, lastSyncedAt };
     }
   }
 
