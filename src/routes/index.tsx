@@ -288,8 +288,20 @@ function Home() {
     }
     setRefreshing(true);
     try {
-      await sync();
+      const result = await sync({ data: { force: true } });
       await router.invalidate();
+      if (result?.skipped) {
+        const mins = result.lastSyncedAt
+          ? Math.max(0, Math.round((Date.now() - new Date(result.lastSyncedAt).getTime()) / 60000))
+          : null;
+        toast.message(
+          mins !== null && mins > 0
+            ? `Already up to date — contacts were checked ${mins} min ago`
+            : "Already up to date — contacts were just checked",
+        );
+      } else {
+        toast.success("Contacts updated");
+      }
       // Also pull any newer app build; reloads on its own when one is found.
       try {
         const { checkForAppUpdate } = await import("@/lib/register-sw");
