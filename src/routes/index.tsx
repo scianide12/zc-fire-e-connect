@@ -37,14 +37,14 @@ const stationsQuery = queryOptions({
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "ZC FIRE E-CONNECT – Zamboanga City" },
+      { title: "ZC FIRE E-CONNECT" },
       {
         name: "description",
         content:
           "Quick-dial emergency contacts for Zamboanga City fire sub-stations. Call the nearest station in one tap.",
       },
       { name: "theme-color", content: "#000000" },
-      { property: "og:title", content: "ZC FIRE E-CONNECT – Zamboanga City" },
+      { property: "og:title", content: "ZC FIRE E-CONNECT" },
       {
         property: "og:description",
         content: "Quick-dial emergency contacts for Zamboanga City fire sub-stations. Call the nearest station in one tap.",
