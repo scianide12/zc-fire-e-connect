@@ -197,51 +197,77 @@ function Home() {
     return filtered.filter((s) => s.station_name.toLowerCase().includes(q));
   }, [filtered, search]);
 
+  const userLocRef = useRef<{ lat: number; lon: number } | null>(null);
+  userLocRef.current = userLoc;
+  const accuracyRef = useRef<number | null>(null);
+  const lastWriteRef = useRef(0);
+  const watchIdRef = useRef<number | null>(null);
+
   const acceptPosition = (pos: GeolocationPosition) => {
     const next = { lat: pos.coords.latitude, lon: pos.coords.longitude };
-    setUserLoc(next);
-    setLocAt(pos.timestamp || Date.now());
-    setLocFromCache(false);
+    const at = pos.timestamp || Date.now();
+    const acc = pos.coords.accuracy ?? null;
+    const prev = userLocRef.current;
+
     setLocStatus("granted");
-    try {
-      localStorage.setItem(
-        LOCATION_CACHE_KEY,
-        JSON.stringify({ ...next, at: pos.timestamp || Date.now() }),
-      );
-    } catch {}
+    setLocFromCache(false);
+
+    // Ignore GPS jitter: only take a new fix when we actually moved ~50m or
+    // the reading is meaningfully more accurate than what we already have.
+    const movedKm = prev ? haversine(prev, next) : Infinity;
+    const better = acc != null && accuracyRef.current != null && acc < accuracyRef.current - 20;
+    if (prev && movedKm < 0.05 && !better) {
+      setLocAt(at);
+      return;
+    }
+
+    accuracyRef.current = acc;
+    userLocRef.current = next;
+    setUserLoc(next);
+    setLocAt(at);
+
+    // Throttle persistence so a busy watch doesn't hammer storage.
+    if (at - lastWriteRef.current > 30000) {
+      lastWriteRef.current = at;
+      try {
+        localStorage.setItem(LOCATION_CACHE_KEY, JSON.stringify({ ...next, at }));
+      } catch {}
+    }
   };
 
-  // Two-stage lookup: a fast, low-accuracy attempt (works offline when the
-  // device already has a fix), then a slower high-accuracy retry.
+  const handleLocError = (err: GeolocationPositionError) => {
+    if (err.code === 1) {
+      setLocStatus("denied");
+      return;
+    }
+    // Signal dropped / timed out: keep whatever position we already have
+    // instead of flipping the whole screen into an error state.
+    if (userLocRef.current) return;
+    setLocStatus("unavailable");
+  };
+
+  // Instant low-accuracy fix for the first paint, then a continuous watch so a
+  // returning signal is picked up within a second or two.
   const requestLocation = () => {
     if (typeof navigator === "undefined" || !("geolocation" in navigator)) {
       setLocStatus("unavailable");
       return;
     }
-    setLocStatus("asking");
-    navigator.geolocation.getCurrentPosition(
-      acceptPosition,
-      (err) => {
-        navigator.geolocation.getCurrentPosition(
-          acceptPosition,
-          (err2) => {
-            // Only nag about permissions when it really is a permission issue
-            // and we have nothing stored to fall back on.
-            const denied = err.code === 1 || err2.code === 1;
-            setLocStatus((prev) => {
-              if (!denied && userLocRef.current) return prev === "asking" ? "granted" : prev;
-              return denied ? "denied" : "unavailable";
-            });
-          },
-          { enableHighAccuracy: true, timeout: 20000, maximumAge: 60000 },
-        );
-      },
-      { enableHighAccuracy: false, timeout: 6000, maximumAge: 30 * 60 * 1000 },
-    );
-  };
+    if (!userLocRef.current) setLocStatus("asking");
 
-  const userLocRef = useRef<{ lat: number; lon: number } | null>(null);
-  userLocRef.current = userLoc;
+    navigator.geolocation.getCurrentPosition(acceptPosition, handleLocError, {
+      enableHighAccuracy: false,
+      timeout: 8000,
+      maximumAge: 10 * 60 * 1000,
+    });
+
+    if (watchIdRef.current != null) return;
+    watchIdRef.current = navigator.geolocation.watchPosition(acceptPosition, handleLocError, {
+      enableHighAccuracy: true,
+      timeout: 27000,
+      maximumAge: 60000,
+    });
+  };
 
   // Restore the last known position so distances render instantly, even offline.
   useEffect(() => {
@@ -250,6 +276,7 @@ function Home() {
       if (raw) {
         const parsed = JSON.parse(raw) as { lat: number; lon: number; at?: number };
         if (typeof parsed.lat === "number" && typeof parsed.lon === "number") {
+          userLocRef.current = { lat: parsed.lat, lon: parsed.lon };
           setUserLoc({ lat: parsed.lat, lon: parsed.lon });
           setLocAt(parsed.at ?? null);
           setLocFromCache(true);
@@ -278,7 +305,7 @@ function Home() {
     }
   };
 
-  // On first load: ask location + fire background sync (when online)
+  // On first load: start location tracking + fire background sync (when online)
   useEffect(() => {
     setOffline(typeof navigator !== "undefined" && navigator.onLine === false);
     requestLocation();
@@ -294,6 +321,10 @@ function Home() {
     return () => {
       window.removeEventListener("online", goOnline);
       window.removeEventListener("offline", goOffline);
+      if (watchIdRef.current != null && typeof navigator !== "undefined" && "geolocation" in navigator) {
+        navigator.geolocation.clearWatch(watchIdRef.current);
+        watchIdRef.current = null;
+      }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
