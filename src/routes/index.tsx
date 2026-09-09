@@ -67,6 +67,13 @@ export const Route = createFileRoute("/")({
 // Zamboanga City landline area code
 const PH_AREA_CODE = "62";
 
+function splitRawPhones(phone: string): string[] {
+  return phone
+    .split(/[/,;]| or /i)
+    .map((p) => p.trim())
+    .filter(Boolean);
+}
+
 function normalizePhone(raw: string): string {
   const trimmed = raw.trim();
   if (!trimmed) return "";
@@ -99,19 +106,30 @@ function normalizePhone(raw: string): string {
   return digits.length >= 11 ? `+${digits}` : digits;
 }
 
-function splitPhones(phone: string): string[] {
-  return phone
-    .split(/[/,;]| or /i)
-    .map((p) => normalizePhone(p))
-    .filter(Boolean);
+// Alternate contacts are Zamboanga City landlines; display them with the 062
+// area code prefix instead of the cellphone-style +63 normalization.
+function formatLandline(raw: string): string {
+  const digits = raw.replace(/\D/g, "");
+  // 7-digit Zamboanga landline -> 062-XXXXXXX
+  if (digits.length === 7) return `062-${digits}`;
+  // Already stored as 062XXXXXXX (10 digits starting with 62)
+  if (digits.length === 10 && digits.startsWith("62")) {
+    return `062-${digits.slice(2)}`;
+  }
+  return raw;
 }
 
-function telHref(phone: string) {
-  return `tel:${splitPhones(phone)[0] ?? ""}`;
+function telHrefLandline(raw: string): string {
+  const digits = raw.replace(/\D/g, "");
+  if (digits.length === 7) return `tel:062${digits}`;
+  if (digits.length === 10 && digits.startsWith("62")) return `tel:0${digits}`;
+  return `tel:${normalizePhone(raw)}`;
 }
 
 function formatPhoneList(phone: string): string {
-  return splitPhones(phone).join(" / ");
+  return splitRawPhones(phone)
+    .map((raw, i) => (i === 0 ? normalizePhone(raw) : formatLandline(raw)))
+    .join(" / ");
 }
 
 
@@ -447,18 +465,23 @@ function Home() {
 
                 <div className="mt-1 text-xl font-bold">{nearest.station_name}</div>
                 <div className="text-sm text-muted-foreground">{formatPhoneList(nearest.phone_number)}</div>
-                {splitPhones(nearest.phone_number).map((num, i, arr) => (
-                  <a
-                    key={num}
-                    href={`tel:${num}`}
-                    className="mt-3 flex h-16 w-full items-center justify-center gap-2 rounded-xl bg-emergency px-3 text-base font-bold text-emergency-foreground active:scale-[.98] transition sm:text-lg"
-                  >
-                    <Phone className="h-6 w-6 shrink-0" strokeWidth={2} />
-                    <span className="truncate">
-                      {arr.length > 1 ? `Call ${i === 0 ? "primary" : "alternate"} — ${num}` : "Call now"}
-                    </span>
-                  </a>
-                ))}
+                {splitRawPhones(nearest.phone_number).map((raw, i, arr) => {
+                  const isPrimary = i === 0;
+                  const displayNum = isPrimary ? normalizePhone(raw) : formatLandline(raw);
+                  const href = isPrimary ? `tel:${normalizePhone(raw)}` : telHrefLandline(raw);
+                  return (
+                    <a
+                      key={`${i}-${displayNum}`}
+                      href={href}
+                      className="mt-3 flex h-16 w-full items-center justify-center gap-2 rounded-xl bg-emergency px-3 text-base font-bold text-emergency-foreground active:scale-[.98] transition sm:text-lg"
+                    >
+                      <Phone className="h-6 w-6 shrink-0" strokeWidth={2} />
+                      <span className="truncate">
+                        {arr.length > 1 ? `Call ${isPrimary ? "primary" : "alternate"} — ${displayNum}` : "Call now"}
+                      </span>
+                    </a>
+                  );
+                })}
                 {nearestSorted.length > 1 && (
                   <button
                     onClick={() =>
@@ -517,20 +540,25 @@ function Home() {
                   ))
                 )}
               </div>
-              {selected && splitPhones(selected.phone_number).map((num, i, arr) => (
-                <a
-                  key={num}
-                  href={`tel:${num}`}
-                  className="mt-3 flex h-16 w-full items-center justify-center gap-2 rounded-xl bg-emergency px-3 text-base font-bold text-emergency-foreground active:scale-[.98] transition sm:text-lg"
-                >
-                  <Phone className="h-6 w-6 shrink-0" strokeWidth={2} />
-                  <span className="truncate">
-                    {arr.length > 1
-                      ? `Call ${i === 0 ? "primary" : "alternate"} — ${num}`
-                      : `Call ${selected.station_name}`}
-                  </span>
-                </a>
-              ))}
+              {selected && splitRawPhones(selected.phone_number).map((raw, i, arr) => {
+                const isPrimary = i === 0;
+                const displayNum = isPrimary ? normalizePhone(raw) : formatLandline(raw);
+                const href = isPrimary ? `tel:${normalizePhone(raw)}` : telHrefLandline(raw);
+                return (
+                  <a
+                    key={`${i}-${displayNum}`}
+                    href={href}
+                    className="mt-3 flex h-16 w-full items-center justify-center gap-2 rounded-xl bg-emergency px-3 text-base font-bold text-emergency-foreground active:scale-[.98] transition sm:text-lg"
+                  >
+                    <Phone className="h-6 w-6 shrink-0" strokeWidth={2} />
+                    <span className="truncate">
+                      {arr.length > 1
+                        ? `Call ${isPrimary ? "primary" : "alternate"} — ${displayNum}`
+                        : `Call ${selected.station_name}`}
+                    </span>
+                  </a>
+                );
+              })}
             </div>
           </section>
         </>
