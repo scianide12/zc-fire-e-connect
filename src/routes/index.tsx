@@ -116,7 +116,9 @@ function formatLandline(raw: string): string {
   if (digits.length === 10 && digits.startsWith("62")) {
     return `062-${digits.slice(2)}`;
   }
-  return raw;
+  // Other alternate contacts are mobile numbers; display them consistently
+  // with primary mobile contacts instead of preserving source spacing.
+  return normalizePhone(raw);
 }
 
 function telHrefLandline(raw: string): string {
