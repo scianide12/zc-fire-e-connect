@@ -67,6 +67,13 @@ export const Route = createFileRoute("/")({
 // Zamboanga City landline area code
 const PH_AREA_CODE = "62";
 
+function splitRawPhones(phone: string): string[] {
+  return phone
+    .split(/[/,;]| or /i)
+    .map((p) => p.trim())
+    .filter(Boolean);
+}
+
 function normalizePhone(raw: string): string {
   const trimmed = raw.trim();
   if (!trimmed) return "";
@@ -99,19 +106,30 @@ function normalizePhone(raw: string): string {
   return digits.length >= 11 ? `+${digits}` : digits;
 }
 
-function splitPhones(phone: string): string[] {
-  return phone
-    .split(/[/,;]| or /i)
-    .map((p) => normalizePhone(p))
-    .filter(Boolean);
+// Alternate contacts are Zamboanga City landlines; display them with the 062
+// area code prefix instead of the cellphone-style +63 normalization.
+function formatLandline(raw: string): string {
+  const digits = raw.replace(/\D/g, "");
+  // 7-digit Zamboanga landline -> 062-XXXXXXX
+  if (digits.length === 7) return `062-${digits}`;
+  // Already stored as 062XXXXXXX (10 digits starting with 62)
+  if (digits.length === 10 && digits.startsWith("62")) {
+    return `062-${digits.slice(2)}`;
+  }
+  return raw;
 }
 
-function telHref(phone: string) {
-  return `tel:${splitPhones(phone)[0] ?? ""}`;
+function telHrefLandline(raw: string): string {
+  const digits = raw.replace(/\D/g, "");
+  if (digits.length === 7) return `tel:062${digits}`;
+  if (digits.length === 10 && digits.startsWith("62")) return `tel:0${digits}`;
+  return `tel:${normalizePhone(raw)}`;
 }
 
 function formatPhoneList(phone: string): string {
-  return splitPhones(phone).join(" / ");
+  return splitRawPhones(phone)
+    .map((raw, i) => (i === 0 ? normalizePhone(raw) : formatLandline(raw)))
+    .join(" / ");
 }
 
 
