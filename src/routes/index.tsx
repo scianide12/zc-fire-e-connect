@@ -465,18 +465,23 @@ function Home() {
 
                 <div className="mt-1 text-xl font-bold">{nearest.station_name}</div>
                 <div className="text-sm text-muted-foreground">{formatPhoneList(nearest.phone_number)}</div>
-                {splitPhones(nearest.phone_number).map((num, i, arr) => (
-                  <a
-                    key={num}
-                    href={`tel:${num}`}
-                    className="mt-3 flex h-16 w-full items-center justify-center gap-2 rounded-xl bg-emergency px-3 text-base font-bold text-emergency-foreground active:scale-[.98] transition sm:text-lg"
-                  >
-                    <Phone className="h-6 w-6 shrink-0" strokeWidth={2} />
-                    <span className="truncate">
-                      {arr.length > 1 ? `Call ${i === 0 ? "primary" : "alternate"} — ${num}` : "Call now"}
-                    </span>
-                  </a>
-                ))}
+                {splitRawPhones(nearest.phone_number).map((raw, i, arr) => {
+                  const isPrimary = i === 0;
+                  const displayNum = isPrimary ? normalizePhone(raw) : formatLandline(raw);
+                  const href = isPrimary ? `tel:${normalizePhone(raw)}` : telHrefLandline(raw);
+                  return (
+                    <a
+                      key={`${i}-${displayNum}`}
+                      href={href}
+                      className="mt-3 flex h-16 w-full items-center justify-center gap-2 rounded-xl bg-emergency px-3 text-base font-bold text-emergency-foreground active:scale-[.98] transition sm:text-lg"
+                    >
+                      <Phone className="h-6 w-6 shrink-0" strokeWidth={2} />
+                      <span className="truncate">
+                        {arr.length > 1 ? `Call ${isPrimary ? "primary" : "alternate"} — ${displayNum}` : "Call now"}
+                      </span>
+                    </a>
+                  );
+                })}
                 {nearestSorted.length > 1 && (
                   <button
                     onClick={() =>
