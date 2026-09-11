@@ -10,6 +10,14 @@ import { VitePWA } from "vite-plugin-pwa";
 export default defineConfig({
   tanstackStart: {
     server: { entry: "server" },
+    // Prerender the home route so the service worker can precache an
+    // index.html shell. That shell lets the installed PWA launch straight
+    // into the main screen even when the device is offline.
+    prerender: {
+      enabled: true,
+      autoStaticPathsDiscovery: false,
+      crawlLinks: false,
+    },
   },
   vite: {
     plugins: [
