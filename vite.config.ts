@@ -19,8 +19,8 @@ function offlineShellPlugin(): Plugin {
     generateBundle(_options, bundle) {
       const entryChunk = Object.values(bundle).find(
         (chunk) =>
-          chunk.type === "chunk" && (chunk as OutputChunk).isEntry && chunk.name === "index"
-      ) as OutputChunk | undefined;
+          chunk.type === "chunk" && "isEntry" in chunk && (chunk as any).isEntry && chunk.name === "index"
+      ) as { fileName: string } | undefined;
       if (!entryChunk) return;
 
       const html = `<!DOCTYPE html>
