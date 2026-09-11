@@ -367,23 +367,27 @@ function Home() {
 
   const selected = stations.find((s) => s.id === selectedId);
 
-  // One combined status banner: no internet, no location fix, or both.
+  // A usable position means we have any location, even a cached one.
+  const usableLoc = userLoc != null;
+  const locFresh = locAt != null && Date.now() - locAt < LOCATION_FRESH_MS;
   const locFailed = locStatus === "denied" || locStatus === "unavailable";
+
+  // Banner only when something is genuinely missing; a cached/stale position
+  // is still usable, so we label distances as approximate instead.
   const statusMessage = (() => {
+    if (offline && locFailed && !usableLoc) {
+      return "Offline and no location — showing saved contacts. Distances are unavailable.";
+    }
     if (offline && locFailed) {
-      return userLoc
-        ? "Offline and no location — showing saved contacts and your last known location."
-        : "Offline and no location — showing saved contacts. Distances are unavailable.";
+      return "Offline and no location fix — using your last known location. Distances may be out of date.";
     }
     if (offline) {
-      return userLoc
+      return usableLoc
         ? "Offline — showing saved contacts and using your last known location."
         : "Offline — showing saved contacts. Distances are unavailable.";
     }
-    if (locFailed) {
-      return userLoc
-        ? "Location unavailable — using your last known location. Distances may be out of date."
-        : "Location unavailable — showing saved contacts. Distances are unavailable.";
+    if (locFailed && !usableLoc) {
+      return "Location unavailable — showing saved contacts. Distances are unavailable.";
     }
     return null;
   })();
@@ -492,7 +496,7 @@ function Home() {
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
                   <MapPin className="h-3.5 w-3.5" />
                   {(nearest as any)._dist != null
-                    ? `${(nearest as any)._dist.toFixed(1)} km away`
+                    ? `${(nearest as any)._dist.toFixed(1)} km away${usableLoc && !locFresh ? " · approximate" : ""}`
                     : "Nearest available"}
                 </div>
 
