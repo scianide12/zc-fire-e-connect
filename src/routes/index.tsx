@@ -496,7 +496,7 @@ function Home() {
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
                   <MapPin className="h-3.5 w-3.5" />
                   {(nearest as any)._dist != null
-                    ? `${(nearest as any)._dist.toFixed(1)} km away`
+                    ? `${(nearest as any)._dist.toFixed(1)} km away${usableLoc && !locFresh ? " · approximate" : ""}`
                     : "Nearest available"}
                 </div>
 
