@@ -35,12 +35,10 @@ export default defineConfig({
         manifest: false,
         workbox: {
           globDirectory: "dist/client",
-          // No prerendered index.html exists (SSR), so there is nothing to use
-          // as a precache navigation fallback — leaving the plugin default in
-          // place made the whole service worker throw `non-precached-url`.
-          // Navigations are handled by the NetworkFirst runtime route below.
-          navigateFallback: null,
-          globPatterns: ["**/*.{js,css,ico,png,svg,webmanifest}"],
+          // The home route is now prerendered to index.html, so Workbox can
+          // precache it and serve it as the fallback for any navigation.
+          navigateFallback: "index.html",
+          globPatterns: ["**/*.{js,css,html,ico,png,svg,webmanifest}"],
           // Emit a single self-contained sw.js; the split AMD runtime chunk
           // registers its install listener too late and skips precaching.
           inlineWorkboxRuntime: true,
