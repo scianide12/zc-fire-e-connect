@@ -11,22 +11,44 @@ const STATIONS_CACHE_KEY = "r9_stations_v1";
 const LOCATION_CACHE_KEY = "r9_last_location_v1";
 const LOCATION_FRESH_MS = 10 * 60 * 1000;
 
+function readCachedStations(): Station[] | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const cached = localStorage.getItem(STATIONS_CACHE_KEY);
+    if (!cached) return null;
+    const parsed = JSON.parse(cached) as Station[];
+    return Array.isArray(parsed) && parsed.length ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
 const stationsQuery = queryOptions({
   queryKey: ["stations"],
+  // The device cache is the source of truth when there is no connection, so
+  // React Query must not retry or pause — the query fn owns the fallback.
+  retry: false,
+  networkMode: "always",
+  staleTime: 5 * 60 * 1000,
+  gcTime: 24 * 60 * 60 * 1000,
   queryFn: async () => {
+    // Offline: resolve straight from the device instead of waiting for a
+    // server request that cannot succeed.
+    if (typeof navigator !== "undefined" && navigator.onLine === false) {
+      const cached = readCachedStations();
+      if (cached) return cached;
+    }
     try {
       const data = await listStations();
-      if (typeof window !== "undefined") {
+      if (typeof window !== "undefined" && data.length) {
         try {
           localStorage.setItem(STATIONS_CACHE_KEY, JSON.stringify(data));
         } catch {}
       }
       return data;
     } catch (e) {
-      if (typeof window !== "undefined") {
-        const cached = localStorage.getItem(STATIONS_CACHE_KEY);
-        if (cached) return JSON.parse(cached) as Station[];
-      }
+      const cached = readCachedStations();
+      if (cached) return cached;
       throw e;
     }
   },
