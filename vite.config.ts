@@ -29,9 +29,16 @@ export default defineConfig({
           globDirectory: "dist/client",
           globPatterns: ["**/*.{js,css,ico,png,svg,webmanifest}"],
           globIgnores: ["sw-offline-shell.js"],
+          // The app's HTML is server-rendered, so there is no index.html to
+          // fall back to. Leaving the plugin's default in place made the
+          // service worker throw on startup ("non-precached-url: index.html"),
+          // which meant nothing was ever cached and the phone showed its own
+          // offline page. Navigations are handled by the html-nav cache below.
+          navigateFallback: undefined,
           // Caches the real start page HTML at install time so an offline
           // launch opens the app itself instead of the browser offline page.
           importScripts: ["/sw-offline-shell.js"],
+
           // Emit a single self-contained sw.js; the split AMD runtime chunk
           // registers its install listener too late and skips precaching.
           inlineWorkboxRuntime: true,
