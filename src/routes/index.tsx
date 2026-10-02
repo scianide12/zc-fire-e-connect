@@ -366,6 +366,9 @@ function Home() {
   const locFailed = locStatus === "denied" || locStatus === "unavailable";
 
   const statusMessage = (() => {
+    if (offline && !usableLoc && locStatus === "asking") {
+      return "Offline — showing saved contacts. Getting your location…";
+    }
     if (offline && !usableLoc) {
       return "Offline and location off — showing saved contacts. Turn on location to find your nearest station.";
     }
