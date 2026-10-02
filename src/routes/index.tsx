@@ -366,14 +366,17 @@ function Home() {
   const locFailed = locStatus === "denied" || locStatus === "unavailable";
 
   const statusMessage = (() => {
-    if (offline && locFailed) {
-      return "Offline and no location — showing saved contacts. Distances are unavailable.";
+    if (offline && !usableLoc && locStatus === "asking") {
+      return "Offline — showing saved contacts. Getting your location…";
+    }
+    if (offline && !usableLoc) {
+      return "Offline and location off — showing saved contacts. Turn on location to find your nearest station.";
     }
     if (offline) {
-      return "Offline — showing saved contacts. Distances need a live location fix.";
+      return "Offline — showing saved contacts. Nearest station active via GPS.";
     }
-    if (locFailed) {
-      return "Location unavailable — showing saved contacts. Distances are unavailable.";
+    if (locFailed && !usableLoc) {
+      return "Location off — turn on location to find your nearest station.";
     }
     return null;
   })();
