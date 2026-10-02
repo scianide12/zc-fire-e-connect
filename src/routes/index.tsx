@@ -8,7 +8,6 @@ import { InstallPrompt } from "@/components/InstallPrompt";
 import { toast } from "sonner";
 
 const STATIONS_CACHE_KEY = "r9_stations_v1";
-const LOCATION_CACHE_KEY = "r9_last_location_v1";
 const LOCATION_FRESH_MS = 10 * 60 * 1000;
 
 function readCachedStations(): Station[] | null {
@@ -177,7 +176,6 @@ function Home() {
   const [tab, setTab] = useState<Tab>("fire");
   const [userLoc, setUserLoc] = useState<{ lat: number; lon: number } | null>(null);
   const [locAt, setLocAt] = useState<number | null>(null);
-  const [locFromCache, setLocFromCache] = useState(false);
   const [locStatus, setLocStatus] = useState<
     "idle" | "asking" | "granted" | "denied" | "unavailable"
   >("idle");
@@ -222,7 +220,6 @@ function Home() {
   const userLocRef = useRef<{ lat: number; lon: number } | null>(null);
   userLocRef.current = userLoc;
   const accuracyRef = useRef<number | null>(null);
-  const lastWriteRef = useRef(0);
   const watchIdRef = useRef<number | null>(null);
 
   const acceptPosition = (pos: GeolocationPosition) => {
@@ -232,7 +229,6 @@ function Home() {
     const prev = userLocRef.current;
 
     setLocStatus("granted");
-    setLocFromCache(false);
 
     // Ignore GPS jitter: only take a new fix when we actually moved ~50m or
     // the reading is meaningfully more accurate than what we already have.
@@ -247,14 +243,6 @@ function Home() {
     userLocRef.current = next;
     setUserLoc(next);
     setLocAt(at);
-
-    // Throttle persistence so a busy watch doesn't hammer storage.
-    if (at - lastWriteRef.current > 30000) {
-      lastWriteRef.current = at;
-      try {
-        localStorage.setItem(LOCATION_CACHE_KEY, JSON.stringify({ ...next, at }));
-      } catch {}
-    }
   };
 
   const handleLocError = (err: GeolocationPositionError) => {
@@ -290,23 +278,6 @@ function Home() {
       maximumAge: 60000,
     });
   };
-
-  // Restore the last known position so distances render instantly, even offline.
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem(LOCATION_CACHE_KEY);
-      if (raw) {
-        const parsed = JSON.parse(raw) as { lat: number; lon: number; at?: number };
-        if (typeof parsed.lat === "number" && typeof parsed.lon === "number") {
-          userLocRef.current = { lat: parsed.lat, lon: parsed.lon };
-          setUserLoc({ lat: parsed.lat, lon: parsed.lon });
-          setLocAt(parsed.at ?? null);
-          setLocFromCache(true);
-          setLocStatus("granted");
-        }
-      }
-    } catch {}
-  }, []);
 
   // Keep an offline copy of the station list (the query fn runs on the server
   // during SSR, so the browser must persist it explicitly).
@@ -389,26 +360,19 @@ function Home() {
 
   const selected = stations.find((s) => s.id === selectedId);
 
-  // A usable position means we have any location, even a cached one.
+  // Only a live GPS fix counts — no last-known-location fallback.
   const usableLoc = userLoc != null;
   const locFresh = locAt != null && Date.now() - locAt < LOCATION_FRESH_MS;
   const locFailed = locStatus === "denied" || locStatus === "unavailable";
 
-  // Banner only when something is genuinely missing; a cached/stale position
-  // is still usable, so we label distances as approximate instead.
   const statusMessage = (() => {
-    if (offline && locFailed && !usableLoc) {
+    if (offline && locFailed) {
       return "Offline and no location — showing saved contacts. Distances are unavailable.";
     }
-    if (offline && locFailed) {
-      return "Offline and no location fix — using your last known location. Distances may be out of date.";
-    }
     if (offline) {
-      return usableLoc
-        ? "Offline — showing saved contacts and using your last known location."
-        : "Offline — showing saved contacts. Distances are unavailable.";
+      return "Offline — showing saved contacts. Distances need a live location fix.";
     }
-    if (locFailed && !usableLoc) {
+    if (locFailed) {
       return "Location unavailable — showing saved contacts. Distances are unavailable.";
     }
     return null;
