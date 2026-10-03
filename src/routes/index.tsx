@@ -22,6 +22,17 @@ function readCachedStations(): Station[] | null {
   }
 }
 
+const STATIONS_AT_KEY = "r9_stations_at_v1";
+const LAST_SYNC_KEY = "r9_last_sync_v1";
+const AUTO_SYNC_MS = 60 * 60 * 1000;
+
+function writeCache(data: Station[]) {
+  try {
+    localStorage.setItem(STATIONS_CACHE_KEY, JSON.stringify(data));
+    localStorage.setItem(STATIONS_AT_KEY, String(Date.now()));
+  } catch {}
+}
+
 const stationsQuery = queryOptions({
   queryKey: ["stations"],
   // The device cache is the source of truth when there is no connection, so
@@ -30,6 +41,13 @@ const stationsQuery = queryOptions({
   networkMode: "always",
   staleTime: 5 * 60 * 1000,
   gcTime: 24 * 60 * 60 * 1000,
+  // Render saved contacts instantly; fresh data loads in the background.
+  initialData: () => readCachedStations() ?? undefined,
+  initialDataUpdatedAt: () => {
+    if (typeof window === "undefined") return undefined;
+    const v = Number(localStorage.getItem(STATIONS_AT_KEY));
+    return v || 0;
+  },
   queryFn: async () => {
     // Offline: resolve straight from the device instead of waiting for a
     // server request that cannot succeed.
@@ -39,11 +57,7 @@ const stationsQuery = queryOptions({
     }
     try {
       const data = await listStations();
-      if (typeof window !== "undefined" && data.length) {
-        try {
-          localStorage.setItem(STATIONS_CACHE_KEY, JSON.stringify(data));
-        } catch {}
-      }
+      if (typeof window !== "undefined" && data.length) writeCache(data);
       return data;
     } catch (e) {
       const cached = readCachedStations();
@@ -149,10 +163,15 @@ function telHrefLandline(raw: string): string {
   return `tel:${normalizePhone(raw)}`;
 }
 
+const phoneListCache = new Map<string, string>();
 function formatPhoneList(phone: string): string {
-  return splitRawPhones(phone)
+  const hit = phoneListCache.get(phone);
+  if (hit !== undefined) return hit;
+  const out = splitRawPhones(phone)
     .map((raw, i) => (i === 0 ? normalizePhone(raw) : formatLandline(raw)))
     .join(" / ");
+  phoneListCache.set(phone, out);
+  return out;
 }
 
 
@@ -211,11 +230,16 @@ function Home() {
       .slice(0, 10);
   }, [filtered, userLoc]);
 
+  const searchIndex = useMemo(
+    () => filtered.map((s) => [s, s.station_name.toLowerCase()] as const),
+    [filtered],
+  );
+
   const searchResults = useMemo(() => {
     const q = search.trim().toLowerCase();
     if (!q) return filtered;
-    return filtered.filter((s) => s.station_name.toLowerCase().includes(q));
-  }, [filtered, search]);
+    return searchIndex.filter(([, name]) => name.includes(q)).map(([s]) => s);
+  }, [filtered, searchIndex, search]);
 
   const userLocRef = useRef<{ lat: number; lon: number } | null>(null);
   userLocRef.current = userLoc;
@@ -267,7 +291,7 @@ function Home() {
 
     navigator.geolocation.getCurrentPosition(acceptPosition, handleLocError, {
       enableHighAccuracy: false,
-      timeout: 8000,
+      timeout: 4000,
       maximumAge: 10 * 60 * 1000,
     });
 
@@ -283,13 +307,17 @@ function Home() {
   // during SSR, so the browser must persist it explicitly).
   useEffect(() => {
     if (!stations?.length) return;
-    try {
-      localStorage.setItem(STATIONS_CACHE_KEY, JSON.stringify(stations));
-    } catch {}
+    writeCache(stations);
   }, [stations]);
 
+  // Automatic check at most once per hour; the Update button always runs.
   const runSync = async () => {
     if (typeof navigator !== "undefined" && navigator.onLine === false) return;
+    try {
+      const last = Number(localStorage.getItem(LAST_SYNC_KEY)) || 0;
+      if (Date.now() - last < AUTO_SYNC_MS) return;
+      localStorage.setItem(LAST_SYNC_KEY, String(Date.now()));
+    } catch {}
     try {
       await sync();
       await router.invalidate();
