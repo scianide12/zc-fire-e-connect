@@ -48,7 +48,9 @@ export default defineConfig({
               handler: "NetworkFirst",
               options: {
                 cacheName: "html-nav",
-                networkTimeoutSeconds: 3,
+                // 1s stall budget: on weak cellular the cached shell serves
+                // immediately instead of making users wait on the network.
+                networkTimeoutSeconds: 1,
                 // The server-rendered HTML can carry Vary headers; ignore them
                 // so the install-time copy always matches an offline launch.
                 matchOptions: { ignoreVary: true },
