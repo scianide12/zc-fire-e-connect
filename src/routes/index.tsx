@@ -278,6 +278,10 @@ function Home() {
     // Signal dropped / timed out: keep whatever position we already have
     // instead of flipping the whole screen into an error state.
     if (userLocRef.current) return;
+    // No fix yet but the continuous watch is still running: the phone is
+    // just taking longer than the 4s fast check to lock satellites. Stay in
+    // "asking" so the "Location off" warning never flashes and disappears.
+    if (watchIdRef.current != null) return;
     setLocStatus("unavailable");
   };
 
