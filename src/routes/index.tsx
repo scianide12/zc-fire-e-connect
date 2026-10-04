@@ -350,6 +350,36 @@ function Home() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Zero-latency permission detection: the Permissions API answers the
+  // "location off" question instantly instead of waiting out the 4-second GPS
+  // timeout, and it fires the moment the user flips the setting while the app
+  // is open (without permission support, GPS behaviour is unchanged).
+  useEffect(() => {
+    if (typeof navigator === "undefined" || !navigator.permissions?.query) return;
+    let ps: PermissionStatus | null = null;
+    const apply = (state: PermissionState) => {
+      if (!userLocRef.current) return;
+      if (state === "denied") {
+        setLocStatus("denied");
+        return;
+      }
+      // Permission just turned on (or was already granted): start tracking.
+      if (state === "granted" && locStatusRef.current === "denied") requestLocation();
+    };
+    navigator.permissions
+      .query({ name: "geolocation" })
+      .then((status) => {
+        ps = status;
+        apply(status.state);
+        status.onchange = () => apply(status.state);
+      })
+      .catch(() => {});
+    return () => {
+      if (ps) ps.onchange = null;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
 
   const nearest = nearestSorted[nearestIdx];
 
