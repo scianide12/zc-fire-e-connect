@@ -243,6 +243,8 @@ function Home() {
 
   const userLocRef = useRef<{ lat: number; lon: number } | null>(null);
   userLocRef.current = userLoc;
+  const locStatusRef = useRef<LocStatus>("idle");
+  locStatusRef.current = locStatus;
   const accuracyRef = useRef<number | null>(null);
   const watchIdRef = useRef<number | null>(null);
 
