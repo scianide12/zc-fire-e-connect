@@ -360,12 +360,13 @@ function Home() {
     if (typeof navigator === "undefined" || !navigator.permissions?.query) return;
     let ps: PermissionStatus | null = null;
     const apply = (state: PermissionState) => {
-      if (!userLocRef.current) return;
+      // A live GPS fix outranks the permission state — never override it.
+      if (userLocRef.current) return;
       if (state === "denied") {
         setLocStatus("denied");
         return;
       }
-      // Permission just turned on (or was already granted): start tracking.
+      // Permission just turned on while the app is open: start tracking.
       if (state === "granted" && locStatusRef.current === "denied") requestLocation();
     };
     navigator.permissions
