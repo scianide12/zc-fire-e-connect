@@ -187,6 +187,7 @@ function haversine(a: { lat: number; lon: number }, b: { lat: number; lon: numbe
 }
 
 type Tab = "fire" | "barangay";
+type LocStatus = "idle" | "asking" | "granted" | "denied" | "unavailable";
 
 function Home() {
   const { data: stations } = useSuspenseQuery(stationsQuery);
@@ -195,9 +196,7 @@ function Home() {
   const [tab, setTab] = useState<Tab>("fire");
   const [userLoc, setUserLoc] = useState<{ lat: number; lon: number } | null>(null);
   const [locAt, setLocAt] = useState<number | null>(null);
-  const [locStatus, setLocStatus] = useState<
-    "idle" | "asking" | "granted" | "denied" | "unavailable"
-  >("idle");
+  const [locStatus, setLocStatus] = useState<LocStatus>("idle");
   const [nearestIdx, setNearestIdx] = useState(0);
   const [selectedId, setSelectedId] = useState<string>("");
   const [search, setSearch] = useState("");
@@ -243,6 +242,8 @@ function Home() {
 
   const userLocRef = useRef<{ lat: number; lon: number } | null>(null);
   userLocRef.current = userLoc;
+  const locStatusRef = useRef<LocStatus>("idle");
+  locStatusRef.current = locStatus;
   const accuracyRef = useRef<number | null>(null);
   const watchIdRef = useRef<number | null>(null);
 
@@ -346,6 +347,44 @@ function Home() {
         navigator.geolocation.clearWatch(watchIdRef.current);
         watchIdRef.current = null;
       }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Zero-latency permission detection: the Permissions API answers the
+  // "location off" question instantly instead of waiting out the 4-second GPS
+  // timeout, and it fires the moment the user flips the setting while the app
+  // is open (without permission support, GPS behaviour is unchanged).
+  useEffect(() => {
+    if (typeof navigator === "undefined" || !navigator.permissions?.query) return;
+    let ps: PermissionStatus | null = null;
+    const apply = (state: PermissionState) => {
+      // A live GPS fix outranks the permission state — never override it.
+      if (userLocRef.current) return;
+      if (state === "denied") {
+        setLocStatus("denied");
+        return;
+      }
+      // Permission just turned on while the app is open: start tracking.
+      if (state === "granted" && locStatusRef.current === "denied") {
+        // The dead watch under the denied permission must be re-armed.
+        if (watchIdRef.current != null && navigator.geolocation) {
+          navigator.geolocation.clearWatch(watchIdRef.current);
+        }
+        watchIdRef.current = null;
+        requestLocation();
+      }
+    };
+    navigator.permissions
+      .query({ name: "geolocation" })
+      .then((status) => {
+        ps = status;
+        apply(status.state);
+        status.onchange = () => apply(status.state);
+      })
+      .catch(() => {});
+    return () => {
+      if (ps) ps.onchange = null;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
