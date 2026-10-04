@@ -187,6 +187,7 @@ function haversine(a: { lat: number; lon: number }, b: { lat: number; lon: numbe
 }
 
 type Tab = "fire" | "barangay";
+type LocStatus = "idle" | "asking" | "granted" | "denied" | "unavailable";
 
 function Home() {
   const { data: stations } = useSuspenseQuery(stationsQuery);
@@ -195,9 +196,7 @@ function Home() {
   const [tab, setTab] = useState<Tab>("fire");
   const [userLoc, setUserLoc] = useState<{ lat: number; lon: number } | null>(null);
   const [locAt, setLocAt] = useState<number | null>(null);
-  const [locStatus, setLocStatus] = useState<
-    "idle" | "asking" | "granted" | "denied" | "unavailable"
-  >("idle");
+  const [locStatus, setLocStatus] = useState<LocStatus>("idle");
   const [nearestIdx, setNearestIdx] = useState(0);
   const [selectedId, setSelectedId] = useState<string>("");
   const [search, setSearch] = useState("");
