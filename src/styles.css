@@ -86,4 +86,19 @@
     font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
     text-rendering: optimizeLegibility;
   }
+
+  /* Removes the double-tap zoom delay so every tap registers instantly. */
+  a,
+  button,
+  input,
+  [role="button"] {
+    touch-action: manipulation;
+  }
+
+  /* Long contact lists only paint what is on screen; skipped items render at
+     their estimated height (py-3 + two text lines ≈ 64px) until scrolled in. */
+  .cv-list-item {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 64px;
+  }
 }

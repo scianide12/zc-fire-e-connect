@@ -579,7 +579,7 @@ function Home() {
                     <button
                       key={s.id}
                       onClick={() => setSelectedId(s.id)}
-                      className={`flex w-full items-center justify-between border-b border-border px-3 py-3 text-left last:border-b-0 ${
+                      className={`cv-list-item flex w-full items-center justify-between border-b border-border px-3 py-3 text-left last:border-b-0 ${
                         selectedId === s.id ? "bg-accent" : ""
                       }`}
                     >
