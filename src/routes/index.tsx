@@ -366,7 +366,14 @@ function Home() {
         return;
       }
       // Permission just turned on while the app is open: start tracking.
-      if (state === "granted" && locStatusRef.current === "denied") requestLocation();
+      if (state === "granted" && locStatusRef.current === "denied") {
+        // The dead watch under the denied permission must be re-armed.
+        if (watchIdRef.current != null && navigator.geolocation) {
+          navigator.geolocation.clearWatch(watchIdRef.current);
+        }
+        watchIdRef.current = null;
+        requestLocation();
+      }
     };
     navigator.permissions
       .query({ name: "geolocation" })
