@@ -187,7 +187,8 @@ function haversine(a: { lat: number; lon: number }, b: { lat: number; lon: numbe
 }
 
 type Tab = "fire" | "barangay";
-type LocStatus = "idle" | "asking" | "granted" | "denied" | "unavailable";
+type LocStatus = "idle" | "consent" | "asking" | "granted" | "denied" | "unavailable";
+const LOC_PROMPTED_KEY = "r9_loc_prompted";
 
 function Home() {
   const { data: stations } = useSuspenseQuery(stationsQuery);
@@ -376,7 +377,24 @@ function Home() {
   // On first load: start location tracking + fire background sync (when online)
   useEffect(() => {
     setOffline(typeof navigator !== "undefined" && navigator.onLine === false);
-    requestLocation();
+    // Soft prompt: on a first visit, explain why location is needed before
+    // the browser's own popup appears (avoids reflexive "Block" taps).
+    const prompted = (() => {
+      try { return localStorage.getItem(LOC_PROMPTED_KEY) === "1"; } catch { return false; }
+    })();
+    if (navigator.permissions?.query) {
+      navigator.permissions
+        .query({ name: "geolocation" })
+        .then((s) => {
+          if (s.state === "prompt") setLocStatus("consent");
+          else requestLocation();
+        })
+        .catch(() => (prompted ? requestLocation() : setLocStatus("consent")));
+    } else if (prompted) {
+      requestLocation();
+    } else {
+      setLocStatus("consent");
+    }
     void runSync();
 
     const goOnline = () => {
@@ -648,6 +666,23 @@ function Home() {
                     Try next nearest
                   </button>
                 )}
+              </div>
+            ) : locStatus === "consent" ? (
+              <div className="rounded-2xl border border-border bg-card p-4">
+                <div className="text-base font-bold">Find your closest fire sub-station</div>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Allow location access so the app can instantly connect you to the nearest station during an emergency.
+                </p>
+                <button
+                  onClick={() => {
+                    try { localStorage.setItem(LOC_PROMPTED_KEY, "1"); } catch {}
+                    retryLocation();
+                  }}
+                  className="mt-3 flex h-16 w-full items-center justify-center gap-2 rounded-xl bg-emergency px-3 text-base font-bold text-emergency-foreground active:scale-[.98] transition"
+                >
+                  <MapPin className="h-6 w-6 shrink-0" strokeWidth={2} />
+                  Allow location access
+                </button>
               </div>
             ) : (
               <div className="rounded-2xl border border-border bg-card p-4 text-sm text-muted-foreground">
