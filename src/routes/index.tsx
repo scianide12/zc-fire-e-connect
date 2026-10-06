@@ -246,6 +246,20 @@ function Home() {
   locStatusRef.current = locStatus;
   const accuracyRef = useRef<number | null>(null);
   const watchIdRef = useRef<number | null>(null);
+  const retryTappedRef = useRef(false);
+  const [showLocHelp, setShowLocHelp] = useState(false);
+  // Button tap: drop any dead watch so tracking re-arms, then ask again.
+  // Browsers never re-show the permission popup once blocked, so if it is
+  // still denied we show how to turn it on in the phone's settings.
+  const retryLocation = () => {
+    retryTappedRef.current = true;
+    setShowLocHelp(false);
+    if (watchIdRef.current != null && typeof navigator !== "undefined" && navigator.geolocation) {
+      navigator.geolocation.clearWatch(watchIdRef.current);
+    }
+    watchIdRef.current = null;
+    requestLocation();
+  };
 
   const acceptPosition = (pos: GeolocationPosition) => {
     const next = { lat: pos.coords.latitude, lon: pos.coords.longitude };
@@ -272,6 +286,7 @@ function Home() {
 
   const handleLocError = (err: GeolocationPositionError) => {
     if (err.code === 1) {
+      if (retryTappedRef.current) setShowLocHelp(true);
       setLocStatus("denied");
       return;
     }
@@ -492,11 +507,16 @@ function Home() {
               : "Location access is needed to find the station nearest to you."}
           </p>
           <button
-            onClick={requestLocation}
+            onClick={retryLocation}
             className="rounded-lg bg-foreground px-3 py-2 text-sm font-medium text-background"
           >
             {locStatus === "unavailable" ? "Try again" : "Enable location"}
           </button>
+          {showLocHelp && locStatus === "denied" ? (
+            <p className="mt-2 text-muted-foreground">
+              Location is blocked for this app. Turn on Location in your phone's quick settings, then allow it for this site: Android — tap the lock icon by the address (or Settings → Apps → Chrome → Permissions → Location); iPhone — Settings → Privacy &amp; Security → Location Services → Safari Websites → While Using. Then tap Enable location again.
+            </p>
+          ) : null}
         </div>
       ) : null}
 
