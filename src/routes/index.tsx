@@ -261,6 +261,33 @@ function Home() {
     requestLocation();
   };
 
+  const [isIOS, setIsIOS] = useState(false);
+  useEffect(() => {
+    setIsIOS(/iPhone|iPad|iPod/i.test(navigator.userAgent));
+  }, []);
+
+  // When the user returns from Settings, re-check location automatically.
+  useEffect(() => {
+    const recheck = () => {
+      if (document.visibilityState !== "visible") return;
+      if (userLocRef.current) return;
+      const s = locStatusRef.current;
+      if (s !== "denied" && s !== "unavailable") return;
+      if (watchIdRef.current != null && navigator.geolocation) {
+        navigator.geolocation.clearWatch(watchIdRef.current);
+      }
+      watchIdRef.current = null;
+      requestLocation();
+    };
+    document.addEventListener("visibilitychange", recheck);
+    window.addEventListener("focus", recheck);
+    return () => {
+      document.removeEventListener("visibilitychange", recheck);
+      window.removeEventListener("focus", recheck);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const acceptPosition = (pos: GeolocationPosition) => {
     const next = { lat: pos.coords.latitude, lon: pos.coords.longitude };
     const at = pos.timestamp || Date.now();
@@ -513,9 +540,21 @@ function Home() {
             {locStatus === "unavailable" ? "Try again" : "Enable location"}
           </button>
           {showLocHelp && locStatus === "denied" ? (
-            <p className="mt-2 text-muted-foreground">
-              Location is blocked for this app. Turn on Location in your phone's quick settings, then allow it for this site: Android — tap the lock icon by the address (or Settings → Apps → Chrome → Permissions → Location); iPhone — Settings → Privacy &amp; Security → Location Services → Safari Websites → While Using. Then tap Enable location again.
-            </p>
+            <div className="mt-3 rounded-lg bg-background p-3 text-muted-foreground">
+              <p className="mb-2 font-semibold text-foreground">Location is blocked — allow it again:</p>
+              {isIOS ? (
+                <ol className="list-decimal space-y-1 pl-5">
+                  <li>Tap <b>aA</b> in Safari's address bar → <b>Website Settings</b> → Location → <b>Allow</b>.</li>
+                  <li>Installed app: Settings → Privacy &amp; Security → Location Services → <b>Safari Websites</b> → <b>While Using</b>.</li>
+                </ol>
+              ) : (
+                <ol className="list-decimal space-y-1 pl-5">
+                  <li>Swipe down and make sure <b>Location</b> is ON.</li>
+                  <li>Tap the <b>lock/tune icon</b> by the web address → <b>Permissions</b> → Location → <b>Allow</b>. Installed app: long-press its icon → App info → Permissions → Location.</li>
+                </ol>
+              )}
+              <p className="mt-2">Come back here — the app will detect it automatically.</p>
+            </div>
           ) : null}
         </div>
       ) : null}
