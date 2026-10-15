@@ -339,7 +339,7 @@ function Home() {
 
     navigator.geolocation.getCurrentPosition(acceptPosition, handleLocError, {
       enableHighAccuracy: false,
-      timeout: 4000,
+      timeout: 1500,
       maximumAge: 10 * 60 * 1000,
     });
 
