@@ -6,6 +6,7 @@ import { Phone, MapPin, Search, AlertTriangle, Flame, Users, RefreshCw, QrCode, 
 import { listStations, syncStations, type Station } from "@/lib/stations.functions";
 import { InstallPrompt } from "@/components/InstallPrompt";
 import { toast } from "sonner";
+import SEED_STATIONS from "@/data/stations-seed.json";
 
 const STATIONS_CACHE_KEY = "r9_stations_v1";
 const LOCATION_FRESH_MS = 10 * 60 * 1000;
@@ -42,9 +43,10 @@ const stationsQuery = queryOptions({
   staleTime: 5 * 60 * 1000,
   gcTime: 24 * 60 * 60 * 1000,
   // Render saved contacts instantly; fresh data loads in the background.
-  initialData: () => readCachedStations() ?? undefined,
+  // Fallback: bundled snapshot so a brand-new install shows contacts at once.
+  initialData: () => readCachedStations() ?? (SEED_STATIONS as Station[]),
   initialDataUpdatedAt: () => {
-    if (typeof window === "undefined") return undefined;
+    if (typeof window === "undefined") return 0;
     const v = Number(localStorage.getItem(STATIONS_AT_KEY));
     return v || 0;
   },
@@ -52,8 +54,7 @@ const stationsQuery = queryOptions({
     // Offline: resolve straight from the device instead of waiting for a
     // server request that cannot succeed.
     if (typeof navigator !== "undefined" && navigator.onLine === false) {
-      const cached = readCachedStations();
-      if (cached) return cached;
+      return readCachedStations() ?? (SEED_STATIONS as Station[]);
     }
     try {
       const data = await listStations();
@@ -62,6 +63,7 @@ const stationsQuery = queryOptions({
     } catch (e) {
       const cached = readCachedStations();
       if (cached) return cached;
+      if (SEED_STATIONS.length) return SEED_STATIONS as Station[];
       throw e;
     }
   },
