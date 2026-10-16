@@ -200,6 +200,7 @@ function Home() {
   const [userLoc, setUserLoc] = useState<{ lat: number; lon: number } | null>(null);
   const [locAt, setLocAt] = useState<number | null>(null);
   const [locStatus, setLocStatus] = useState<LocStatus>("idle");
+  const [locAccuracy, setLocAccuracy] = useState<number | null>(null);
   const [nearestIdx, setNearestIdx] = useState(0);
   const [selectedId, setSelectedId] = useState<string>("");
   const [search, setSearch] = useState("");
@@ -309,6 +310,7 @@ function Home() {
     }
 
     accuracyRef.current = acc;
+    setLocAccuracy(acc);
     userLocRef.current = next;
     setUserLoc(next);
     setLocAt(at);
@@ -496,6 +498,9 @@ function Home() {
   // Only a live GPS fix counts — no last-known-location fallback.
   const usableLoc = userLoc != null;
   const locFresh = locAt != null && Date.now() - locAt < LOCATION_FRESH_MS;
+  // Coarse tower/Wi-Fi fix (>500m): show the nearest station right away but
+  // mark the distance approximate until the precise GPS watch sharpens it.
+  const locCoarse = locAccuracy != null && locAccuracy > 500;
   const locFailed = locStatus === "denied" || locStatus === "unavailable";
 
   const statusMessage = (() => {
@@ -635,7 +640,7 @@ function Home() {
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
                   <MapPin className="h-3.5 w-3.5" />
                   {(nearest as any)._dist != null
-                    ? `${(nearest as any)._dist.toFixed(1)} km away${usableLoc && !locFresh ? " · approximate" : ""}`
+                    ? `${(nearest as any)._dist.toFixed(1)} km away${locCoarse || (usableLoc && !locFresh) ? " · approximate" : ""}`
                     : "Nearest available"}
                 </div>
 
