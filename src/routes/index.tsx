@@ -511,7 +511,7 @@ function Home() {
       return "Offline and location off — showing saved contacts. Turn on location to find the nearest responders.";
     }
     if (offline) {
-      return "Offline — showing saved contacts. Call Nearest station active via GPS.";
+      return "Offline — showing saved contacts. Call Nearest Responder active via GPS.";
     }
     if (locFailed && !usableLoc) {
       return "Location off — turn on location to find the nearest responders.";
@@ -556,7 +556,7 @@ function Home() {
           <p className="mb-2">
             {locStatus === "unavailable"
               ? "Couldn't get your location right now (this can happen with no signal). Distances need a location fix."
-              : "Location access is needed to find the station nearest to you."}
+              : "Location access is needed to find the responders nearest to you."}
           </p>
           <button
             onClick={retryLocation}
@@ -633,7 +633,7 @@ function Home() {
           {/* Option 1 — Nearest */}
           <section className="mx-4 mt-6">
             <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-              Call nearest station
+              Call Nearest Responder
             </h2>
             {userLoc && nearest ? (
               <div className="rounded-2xl bg-card p-4 shadow-sm">
