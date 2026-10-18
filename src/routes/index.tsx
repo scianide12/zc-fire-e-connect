@@ -508,7 +508,7 @@ function Home() {
       return "Offline — showing saved contacts. Getting your location…";
     }
     if (offline && !usableLoc) {
-      return "Offline and location off — showing saved contacts. Turn on location to find the nearest responders.";
+      return "Offline and location off — showing saved contacts.";
     }
     if (offline) {
       return "Offline — showing saved contacts. Call Nearest Responder active via GPS.";
