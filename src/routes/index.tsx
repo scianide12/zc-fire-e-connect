@@ -508,13 +508,13 @@ function Home() {
       return "Offline — showing saved contacts. Getting your location…";
     }
     if (offline && !usableLoc) {
-      return "Offline and location off — showing saved contacts. Turn on location to find your nearest station.";
+      return "Offline and location off — showing saved contacts. Turn on location to find the nearest responders.";
     }
     if (offline) {
-      return "Offline — showing saved contacts. Nearest station active via GPS.";
+      return "Offline — showing saved contacts. Call Nearest station active via GPS.";
     }
     if (locFailed && !usableLoc) {
-      return "Location off — turn on location to find your nearest station.";
+      return "Location off — turn on location to find the nearest responders.";
     }
     return null;
   })();
@@ -676,9 +676,9 @@ function Home() {
               </div>
             ) : locStatus === "consent" ? (
               <div className="rounded-2xl border border-border bg-card p-4">
-                <div className="text-base font-bold">Find your closest fire sub-station</div>
+                <div className="text-base font-bold">Find the closest responders </div>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  Allow location access so the app can instantly connect you to the nearest station during an emergency.
+                  Allow location access so the app can instantly connect you to the nearest responders.
                 </p>
                 <button
                   onClick={() => {
@@ -695,7 +695,7 @@ function Home() {
               <div className="rounded-2xl border border-border bg-card p-4 text-sm text-muted-foreground">
                 {locStatus === "asking"
                   ? "Getting your location…"
-                  : "Enable location to find the nearest station."}
+                  : "Enable location."}
               </div>
             )}
           </section>
