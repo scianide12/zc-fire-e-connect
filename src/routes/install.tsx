@@ -180,7 +180,9 @@ function InstallPage() {
 
 
 
-     
+      <footer className="mx-4 mt-8 text-center text-xs text-muted-foreground">
+        Region IX
+      </footer>
     </div>
   );
 }
