@@ -196,6 +196,30 @@ export const syncStations = createServerFn({ method: "POST" })
       );
       synced++;
     }
+
+    // Mirror sync: the sheet is the source of truth. Remove rows in this
+    // category whose name is no longer in the sheet, so renamed or deleted
+    // stations don't linger as stale duplicates.
+    const activeNames = new Set(
+      rows
+        .slice(1)
+        .map((r) => (r[idxName] ?? "").trim())
+        .filter(Boolean),
+    );
+    const { data: catRows, error: catErr } = await supabaseAdmin
+      .from("stations")
+      .select("id, station_name")
+      .eq("category", source.category);
+    if (catErr) throw catErr;
+    const staleIds = (catRows ?? [])
+      .filter((r) => !activeNames.has(r.station_name))
+      .map((r) => r.id);
+    for (let i = 0; i < staleIds.length; i += 100) {
+      await supabaseAdmin
+        .from("stations")
+        .delete()
+        .in("id", staleIds.slice(i, i + 100));
+    }
   }
 
   return { synced, skipped: false as const, lastSyncedAt };
