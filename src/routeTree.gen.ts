@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as InstallRouteImport } from './routes/install'
 import { Route as ShareRouteImport } from './routes/share'
+import { Route as ApiPublicSyncSheetsRouteImport } from './routes/api/public/sync-sheets'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -28,35 +29,44 @@ const ShareRoute = ShareRouteImport.update({
   path: '/share',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicSyncSheetsRoute = ApiPublicSyncSheetsRouteImport.update({
+  id: '/api/public/sync-sheets',
+  path: '/api/public/sync-sheets',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/install': typeof InstallRoute
   '/share': typeof ShareRoute
+  '/api/public/sync-sheets': typeof ApiPublicSyncSheetsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/install': typeof InstallRoute
   '/share': typeof ShareRoute
+  '/api/public/sync-sheets': typeof ApiPublicSyncSheetsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/install': typeof InstallRoute
   '/share': typeof ShareRoute
+  '/api/public/sync-sheets': typeof ApiPublicSyncSheetsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/install' | '/share'
+  fullPaths: '/' | '/install' | '/share' | '/api/public/sync-sheets'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/install' | '/share'
-  id: '__root__' | '/' | '/install' | '/share'
+  to: '/' | '/install' | '/share' | '/api/public/sync-sheets'
+  id: '__root__' | '/' | '/install' | '/share' | '/api/public/sync-sheets'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   InstallRoute: typeof InstallRoute
   ShareRoute: typeof ShareRoute
+  ApiPublicSyncSheetsRoute: typeof ApiPublicSyncSheetsRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -82,6 +92,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ShareRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/sync-sheets': {
+      id: '/api/public/sync-sheets'
+      path: '/api/public/sync-sheets'
+      fullPath: '/api/public/sync-sheets'
+      preLoaderRoute: typeof ApiPublicSyncSheetsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -89,6 +106,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   InstallRoute: InstallRoute,
   ShareRoute: ShareRoute,
+  ApiPublicSyncSheetsRoute: ApiPublicSyncSheetsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
