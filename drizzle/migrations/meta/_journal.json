@@ -1,0 +1,13 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1793595053058,
+      "tag": "0000_make_stations_private_server_read_only",
+      "breakpoints": true
+    }
+  ]
+}
