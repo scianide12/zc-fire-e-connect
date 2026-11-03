@@ -2,7 +2,7 @@ import { createFileRoute, useRouter, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
-import { Phone, MapPin, Search, AlertTriangle, Flame, Users, RefreshCw, QrCode, Download } from "lucide-react";
+import { Phone, MapPin, Search, AlertTriangle, Flame, Users, RefreshCw, QrCode, Download, Pencil, X } from "lucide-react";
 import { listStations, syncStations, type Station } from "@/lib/stations.functions";
 import { InstallPrompt } from "@/components/InstallPrompt";
 import { toast } from "sonner";
@@ -203,6 +203,8 @@ function Home() {
   const [locAccuracy, setLocAccuracy] = useState<number | null>(null);
   const [nearestIdx, setNearestIdx] = useState(0);
   const [selectedId, setSelectedId] = useState<string>("");
+  const [pickerOpen, setPickerOpen] = useState(true);
+  const searchInputRef = useRef<HTMLInputElement>(null);
   const [search, setSearch] = useState("");
   const [refreshing, setRefreshing] = useState(false);
   const [offline, setOffline] = useState(false);
@@ -706,57 +708,93 @@ function Home() {
               Call by selection
             </h2>
             <div className="rounded-2xl bg-card p-4">
-              <label className="flex items-center gap-2 rounded-xl border border-border bg-background px-3 py-2">
-                <Search className="h-4 w-4 text-muted-foreground" />
-                <input
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Search stations…"
-                  className="w-full bg-transparent text-base outline-none placeholder:text-muted-foreground"
-                />
-              </label>
-              <div className="mt-3 max-h-64 overflow-y-auto rounded-xl border border-border">
-                {searchResults.length === 0 ? (
-                  <div className="p-4 text-sm text-muted-foreground">No matches</div>
-                ) : (
-                  searchResults.map((s) => (
+              {selected && !pickerOpen ? (
+                <>
+                  <div className="flex items-center justify-between gap-3 rounded-xl border border-border bg-background px-3 py-3">
+                    <div className="min-w-0">
+                      <div className="truncate text-sm font-medium">{selected.station_name}</div>
+                      <div className="text-xs text-muted-foreground">{formatPhoneList(selected.phone_number)}</div>
+                    </div>
                     <button
-                      key={s.id}
-                      onClick={() => setSelectedId(s.id)}
-                      className={`cv-list-item flex w-full items-center justify-between border-b border-border px-3 py-3 text-left last:border-b-0 ${
-                        selectedId === s.id ? "bg-accent" : ""
-                      }`}
+                      onClick={() => {
+                        setPickerOpen(true);
+                        setTimeout(() => searchInputRef.current?.focus(), 0);
+                      }}
+                      className="flex h-9 shrink-0 items-center gap-1 rounded-lg border border-border px-3 text-xs font-semibold text-muted-foreground transition active:scale-[.98]"
                     >
-                      <div>
-                        <div className="text-sm font-medium">{s.station_name}</div>
-                        <div className="text-xs text-muted-foreground">{formatPhoneList(s.phone_number)}</div>
-                      </div>
-                      {selectedId === s.id && (
-                        <span className="text-xs text-emergency">Selected</span>
-                      )}
+                      <Pencil className="h-3.5 w-3.5" />
+                      Change
                     </button>
-                  ))
-                )}
-              </div>
-              {selected && splitRawPhones(selected.phone_number).map((raw, i, arr) => {
-                const isPrimary = i === 0;
-                const displayNum = isPrimary ? normalizePhone(raw) : formatLandline(raw);
-                const href = isPrimary ? `tel:${normalizePhone(raw)}` : telHrefLandline(raw);
-                return (
-                  <a
-                    key={`${i}-${displayNum}`}
-                    href={href}
-                    className="mt-3 flex h-16 w-full items-center justify-center gap-2 rounded-xl bg-emergency px-3 text-base font-bold text-emergency-foreground active:scale-[.98] transition sm:text-lg"
-                  >
-                    <Phone className="h-6 w-6 shrink-0" strokeWidth={2} />
-                    <span className="truncate">
-                      {arr.length > 1
-                        ? `Call ${isPrimary ? "primary" : "alternate"} — ${displayNum}`
-                        : `Call ${selected.station_name}`}
-                    </span>
-                  </a>
-                );
-              })}
+                  </div>
+                  {splitRawPhones(selected.phone_number).map((raw, i, arr) => {
+                    const isPrimary = i === 0;
+                    const displayNum = isPrimary ? normalizePhone(raw) : formatLandline(raw);
+                    const href = isPrimary ? `tel:${normalizePhone(raw)}` : telHrefLandline(raw);
+                    return (
+                      <a
+                        key={`${i}-${displayNum}`}
+                        href={href}
+                        className="mt-3 flex h-16 w-full items-center justify-center gap-2 rounded-xl bg-emergency px-3 text-base font-bold text-emergency-foreground active:scale-[.98] transition sm:text-lg"
+                      >
+                        <Phone className="h-6 w-6 shrink-0" strokeWidth={2} />
+                        <span className="truncate">
+                          {arr.length > 1
+                            ? `Call ${isPrimary ? "primary" : "alternate"} — ${displayNum}`
+                            : `Call ${selected.station_name}`}
+                        </span>
+                      </a>
+                    );
+                  })}
+                </>
+              ) : (
+                <>
+                  <label className="flex items-center gap-2 rounded-xl border border-border bg-background px-3 py-2">
+                    <Search className="h-4 w-4 text-muted-foreground" />
+                    <input
+                      ref={searchInputRef}
+                      value={search}
+                      onChange={(e) => setSearch(e.target.value)}
+                      placeholder="Search stations…"
+                      className="w-full bg-transparent text-base outline-none placeholder:text-muted-foreground"
+                    />
+                  </label>
+                  <div className="mt-3 max-h-64 overflow-y-auto rounded-xl border border-border">
+                    {searchResults.length === 0 ? (
+                      <div className="p-4 text-sm text-muted-foreground">No matches</div>
+                    ) : (
+                      searchResults.map((s) => (
+                        <button
+                          key={s.id}
+                          onClick={() => {
+                            setSelectedId(s.id);
+                            setPickerOpen(false);
+                          }}
+                          className={`cv-list-item flex w-full items-center justify-between border-b border-border px-3 py-3 text-left last:border-b-0 ${
+                            selectedId === s.id ? "bg-accent" : ""
+                          }`}
+                        >
+                          <div>
+                            <div className="text-sm font-medium">{s.station_name}</div>
+                            <div className="text-xs text-muted-foreground">{formatPhoneList(s.phone_number)}</div>
+                          </div>
+                          {selectedId === s.id && (
+                            <span className="text-xs text-emergency">Selected</span>
+                          )}
+                        </button>
+                      ))
+                    )}
+                  </div>
+                  {selected && (
+                    <button
+                      onClick={() => setPickerOpen(false)}
+                      className="mt-3 flex h-10 w-full items-center justify-center gap-1 rounded-xl border border-border text-sm font-semibold text-muted-foreground transition active:scale-[.98]"
+                    >
+                      <X className="h-4 w-4" />
+                      Cancel
+                    </button>
+                  )}
+                </>
+              )}
             </div>
           </section>
         </>
