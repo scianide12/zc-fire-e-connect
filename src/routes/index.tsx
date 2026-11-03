@@ -203,6 +203,8 @@ function Home() {
   const [locAccuracy, setLocAccuracy] = useState<number | null>(null);
   const [nearestIdx, setNearestIdx] = useState(0);
   const [selectedId, setSelectedId] = useState<string>("");
+  const [pickerOpen, setPickerOpen] = useState(true);
+  const searchInputRef = useRef<HTMLInputElement>(null);
   const [search, setSearch] = useState("");
   const [refreshing, setRefreshing] = useState(false);
   const [offline, setOffline] = useState(false);
